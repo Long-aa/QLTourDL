@@ -18,11 +18,11 @@ export function RevenueChart() {
   ];
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 dark:bg-gray-900 dark:border-gray-800 transition-colors">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="font-semibold text-gray-900">Xu hướng doanh thu</h3>
-        <button className="p-1 hover:bg-gray-100 rounded">
-          <MoreHorizontal className="w-5 h-5 text-gray-400" />
+        <h3 className="font-semibold text-gray-900 dark:text-white">Xu hướng doanh thu</h3>
+        <button className="p-1 hover:bg-gray-100 rounded dark:hover:bg-gray-800 transition-colors">
+          <MoreHorizontal className="w-5 h-5 text-gray-400 dark:text-gray-500" />
         </button>
       </div>
 
@@ -55,7 +55,7 @@ export function RevenueChart() {
                 cy={point.y} 
                 r="5" 
                 fill="#2563eb"
-                stroke="white"
+                className="stroke-white dark:stroke-gray-900"
                 strokeWidth="2"
               />
             </g>

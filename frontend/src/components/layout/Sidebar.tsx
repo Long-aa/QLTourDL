@@ -30,15 +30,15 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
-      <div className="p-6 border-b border-gray-100">
+    <aside className="w-64 bg-white border-r border-gray-200 flex flex-col dark:bg-gray-900 dark:border-gray-800 transition-colors">
+      <div className="p-6 border-b border-gray-100 dark:border-gray-800">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-600/20">
             <span className="text-white font-bold text-sm">LV</span>
           </div>
           <div>
-            <h1 className="font-bold text-blue-600 text-lg">LuxeVoyage</h1>
-            <p className="text-xs text-gray-500">QUẢN LÝ TOUR DU LỊCH</p>
+            <h1 className="font-bold text-blue-600 text-lg dark:text-blue-500">LuxeVoyage</h1>
+            <p className="text-xs text-gray-500 dark:text-gray-400">QUẢN LÝ TOUR DU LỊCH</p>
           </div>
         </div>
       </div>
@@ -53,10 +53,10 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               className={`
-                flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors
+                flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all
                 ${isActive 
-                  ? 'bg-blue-600 text-white' 
-                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200'
                 }
               `}
             >
@@ -66,22 +66,6 @@ export function Sidebar() {
           );
         })}
       </nav>
-
-      <div className="p-4 border-t border-gray-100">
-        <Link
-          href="/admin/profile"
-          className={`
-            flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors
-            ${pathname === '/admin/profile' 
-              ? 'bg-blue-600 text-white' 
-              : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-            }
-          `}
-        >
-          <UserCog className="w-5 h-5" />
-          Hồ sơ của tôi
-        </Link>
-      </div>
     </aside>
   );
 }

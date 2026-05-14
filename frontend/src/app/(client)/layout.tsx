@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { User, LogOut, Settings, UserCircle, Calendar } from 'lucide-react';
+import { User, LogOut, UserCircle, Calendar } from 'lucide-react';
 
 export default function ClientLayout({
   children,
@@ -65,10 +65,7 @@ export default function ClientLayout({
                       <Calendar className="w-4 h-4" />
                       Chuyến đi của tôi
                     </button>
-                    <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-all">
-                      <Settings className="w-4 h-4" />
-                      Cài đặt
-                    </button>
+
                     <div className="h-px bg-gray-50 my-1"></div>
                     <button 
                       onClick={handleLogout}

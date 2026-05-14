@@ -10,11 +10,11 @@ const categories = [
 
 export function TourDistribution() {
   return (
-    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 h-full">
+    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 h-full dark:bg-gray-900 dark:border-gray-800 transition-colors">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="font-semibold text-gray-900">Phân bố loại tour</h3>
-        <button className="p-1 hover:bg-gray-100 rounded">
-          <MoreHorizontal className="w-5 h-5 text-gray-400" />
+        <h3 className="font-semibold text-gray-900 dark:text-white">Phân bố loại tour</h3>
+        <button className="p-1 hover:bg-gray-100 rounded dark:hover:bg-gray-800 transition-colors">
+          <MoreHorizontal className="w-5 h-5 text-gray-400 dark:text-gray-500" />
         </button>
       </div>
 
@@ -53,8 +53,8 @@ export function TourDistribution() {
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-2xl font-bold text-gray-900">324</span>
-            <span className="text-xs text-gray-500">Total Tours</span>
+            <span className="text-2xl font-bold text-gray-900 dark:text-white">324</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">Total Tours</span>
           </div>
         </div>
       </div>
@@ -65,9 +65,9 @@ export function TourDistribution() {
           <div key={cat.name} className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className={`w-3 h-3 rounded-full ${cat.color}`}></div>
-              <span className="text-sm text-gray-600">{cat.name}</span>
+              <span className="text-sm text-gray-600 dark:text-gray-400">{cat.name}</span>
             </div>
-            <span className="text-sm font-medium text-gray-900">{cat.percentage}%</span>
+            <span className="text-sm font-medium text-gray-900 dark:text-white">{cat.percentage}%</span>
           </div>
         ))}
       </div>

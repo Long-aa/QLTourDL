@@ -71,34 +71,34 @@ export default function ToursPage() {
     <div className="space-y-6">
       {/* Header Info */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Danh sách Tour</h1>
-        <p className="text-gray-500">Quản lý và cập nhật thông tin các chuyến đi</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Danh sách Tour</h1>
+        <p className="text-gray-500 dark:text-gray-400">Quản lý và cập nhật thông tin các chuyến đi</p>
       </div>
 
       {/* Toolbar */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-wrap items-center justify-between gap-4 dark:bg-gray-900 dark:border-gray-800 transition-colors">
         <div className="flex flex-1 items-center gap-4">
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
             <input
               type="text"
               placeholder="Tìm kiếm tour theo tên, mã..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
+              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:placeholder-gray-500 transition-all"
             />
           </div>
-          <select className="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer min-w-[140px]">
+          <select className="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer min-w-[140px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 transition-all">
             <option value="">Điểm đến</option>
             <option value="sapa">Sapa</option>
             <option value="danang">Đà Nẵng</option>
             <option value="phuquoc">Phú Quốc</option>
           </select>
-          <select className="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer min-w-[140px]">
+          <select className="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer min-w-[140px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 transition-all">
             <option value="">Mức giá</option>
             <option value="<5">Dưới 5 triệu</option>
             <option value="5-10">5 - 10 triệu</option>
             <option value=">10">Trên 10 triệu</option>
           </select>
-          <select className="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer min-w-[140px]">
+          <select className="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer min-w-[140px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 transition-all">
             <option value="">Trạng thái</option>
             <option value="available">Còn chỗ</option>
             <option value="full">Hết chỗ</option>
@@ -106,7 +106,7 @@ export default function ToursPage() {
         </div>
         <button 
           onClick={handleAddTour}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-sm font-medium shadow-lg shadow-blue-600/20 active:scale-95"
         >
           <Plus className="w-4 h-4" />
           Thêm tour
@@ -114,85 +114,85 @@ export default function ToursPage() {
       </div>
 
       {/* Table Section */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden dark:bg-gray-900 dark:border-gray-800 transition-colors">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-gray-100 bg-gray-50/50">
-                <th className="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Hình ảnh</th>
-                <th className="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Tên tour</th>
-                <th className="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Điểm đến</th>
-                <th className="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider flex-1">
-                  <div className="flex items-center gap-1 cursor-pointer hover:text-gray-700">
+              <tr className="border-b border-gray-100 bg-gray-50/50 dark:border-gray-800 dark:bg-gray-800/30">
+                <th className="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400">Hình ảnh</th>
+                <th className="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400">Tên tour</th>
+                <th className="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400">Điểm đến</th>
+                <th className="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400">
+                  <div className="flex items-center gap-1 cursor-pointer hover:text-gray-700 dark:hover:text-gray-200">
                     Giá
                     <Filter className="w-3 h-3" />
                   </div>
                 </th>
-                <th className="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Số chỗ</th>
-                <th className="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Trạng thái</th>
-                <th className="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  <div className="flex items-center gap-1 cursor-pointer hover:text-gray-700">
+                <th className="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400">Số chỗ</th>
+                <th className="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400">Trạng thái</th>
+                <th className="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400">
+                  <div className="flex items-center gap-1 cursor-pointer hover:text-gray-700 dark:hover:text-gray-200">
                     Ngày khởi hành
                     <Filter className="w-3 h-3" />
                   </div>
                 </th>
-                <th className="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Thao tác</th>
+                <th className="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right dark:text-gray-400">Thao tác</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
               {MOCK_TOURS.map((tour) => (
-                <tr key={tour.id} className="hover:bg-gray-50/50 transition-colors">
+                <tr key={tour.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors">
                   <td className="py-4 px-6">
                     <div className="relative w-12 h-12">
-                      <Image src={tour.image} alt={tour.name} fill className="rounded-lg object-cover shadow-sm" />
+                      <Image src={tour.image} alt={tour.name} fill className="rounded-lg object-cover shadow-sm dark:opacity-80" />
                     </div>
                   </td>
                   <td className="py-4 px-6">
-                    <Link href={`/admin/tours/${tour.id}`} className="font-semibold text-gray-900 line-clamp-2 max-w-[200px] hover:text-blue-600 transition-colors" title={tour.name}>
+                    <Link href={`/admin/tours/${tour.id}`} className="font-semibold text-gray-900 line-clamp-2 max-w-[200px] hover:text-blue-600 transition-colors dark:text-gray-100 dark:hover:text-blue-400" title={tour.name}>
                       {tour.name}
                     </Link>
-                    <p className="text-xs text-gray-500 mt-1">#{tour.id}</p>
+                    <p className="text-xs text-gray-500 mt-1 dark:text-gray-500">#{tour.id}</p>
                   </td>
                   <td className="py-4 px-6">
-                    <span className="text-sm text-gray-600">{tour.destination}</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">{tour.destination}</span>
                   </td>
                   <td className="py-4 px-6">
-                    <span className="text-sm font-semibold text-gray-900">
+                    <span className="text-sm font-semibold text-gray-900 dark:text-white">
                       {tour.price.toLocaleString('vi-VN')} đ
                     </span>
                   </td>
                   <td className="py-4 px-6">
                     <div className="text-sm">
-                      <span className={tour.booked >= tour.capacity ? 'text-red-600 font-medium' : 'text-gray-900 font-medium'}>
+                      <span className={tour.booked >= tour.capacity ? 'text-red-600 font-medium' : 'text-gray-900 font-medium dark:text-gray-200'}>
                         {tour.booked}
                       </span>
-                      <span className="text-gray-500">/{tour.capacity}</span>
+                      <span className="text-gray-500 dark:text-gray-500">/{tour.capacity}</span>
                     </div>
                   </td>
                   <td className="py-4 px-6">
                     <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
                       tour.status === 'Còn chỗ' 
-                        ? 'bg-green-50 text-green-700 border-green-200'
-                        : 'bg-red-50 text-red-700 border-red-200'
+                        ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-900/30'
+                        : 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/30'
                     }`}>
                       {tour.status}
                     </span>
                   </td>
                   <td className="py-4 px-6">
-                    <span className="text-sm text-gray-600">{tour.date}</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">{tour.date}</span>
                   </td>
                   <td className="py-4 px-6 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <Link 
                         href={`/admin/tours/${tour.id}`}
-                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all dark:hover:text-blue-400 dark:hover:bg-blue-900/20"
                         title="Xem chi tiết"
                       >
                         <Eye className="w-4 h-4" />
                       </Link>
                       <button 
                         onClick={() => handleEditTour(tour)}
-                        className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all"
+                        className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all dark:hover:text-amber-400 dark:hover:bg-amber-900/20"
                         title="Chỉnh sửa"
                       >
                         <Edit className="w-4 h-4" />
@@ -203,7 +203,7 @@ export default function ToursPage() {
                             alert('Đã xóa tour ' + tour.id);
                           }
                         }}
-                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all dark:hover:text-red-400 dark:hover:bg-red-900/20"
                         title="Xóa"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -217,16 +217,16 @@ export default function ToursPage() {
         </div>
         
         {/* Pagination */}
-        <div className="py-4 px-6 border-t border-gray-100 flex items-center justify-between">
-          <p className="text-sm text-gray-500">Hiển thị 1 đến 4 của 32 tour</p>
+        <div className="py-4 px-6 border-t border-gray-100 flex items-center justify-between dark:border-gray-800 transition-colors">
+          <p className="text-sm text-gray-500 dark:text-gray-500">Hiển thị 1 đến 4 của 32 tour</p>
           <div className="flex items-center gap-1">
-            <button className="p-1 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100"><ChevronLeft className="w-5 h-5" /></button>
-            <button className="w-8 h-8 flex items-center justify-center rounded bg-blue-600 text-white text-sm font-medium">1</button>
-            <button className="w-8 h-8 flex items-center justify-center rounded text-gray-600 hover:bg-gray-100 text-sm font-medium">2</button>
-            <button className="w-8 h-8 flex items-center justify-center rounded text-gray-600 hover:bg-gray-100 text-sm font-medium">3</button>
-            <span className="px-2 text-gray-400">...</span>
-            <button className="w-8 h-8 flex items-center justify-center rounded text-gray-600 hover:bg-gray-100 text-sm font-medium">8</button>
-            <button className="p-1 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100"><ChevronRight className="w-5 h-5" /></button>
+            <button className="p-1 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-gray-200 transition-all"><ChevronLeft className="w-5 h-5" /></button>
+            <button className="w-8 h-8 flex items-center justify-center rounded bg-blue-600 text-white text-sm font-medium shadow-lg shadow-blue-600/20">1</button>
+            <button className="w-8 h-8 flex items-center justify-center rounded text-gray-600 hover:bg-gray-100 text-sm font-medium dark:text-gray-400 dark:hover:bg-gray-800 transition-all">2</button>
+            <button className="w-8 h-8 flex items-center justify-center rounded text-gray-600 hover:bg-gray-100 text-sm font-medium dark:text-gray-400 dark:hover:bg-gray-800 transition-all">3</button>
+            <span className="px-2 text-gray-400 dark:text-gray-600">...</span>
+            <button className="w-8 h-8 flex items-center justify-center rounded text-gray-600 hover:bg-gray-100 text-sm font-medium dark:text-gray-400 dark:hover:bg-gray-800 transition-all">8</button>
+            <button className="p-1 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-gray-200 transition-all"><ChevronRight className="w-5 h-5" /></button>
           </div>
         </div>
       </div>
