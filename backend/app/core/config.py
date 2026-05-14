@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Tour Management System"
     VERSION: str = "1.0.0"
     
-    DATABASE_URL: str = "postgresql://user:password@localhost:5432/tour_management"
+    DATABASE_URL: str = "postgresql://postgres:Longdz19082005@localhost:8000/QLTourDuLich"
     
     SECRET_KEY: str = "your-secret-key-here"
     ALGORITHM: str = "HS256"
