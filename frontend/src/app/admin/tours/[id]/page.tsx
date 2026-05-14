@@ -1,26 +1,28 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { 
-  ChevronLeft, 
-  Edit, 
-  Trash2, 
-  Calendar, 
-  MapPin, 
-  Users, 
-  DollarSign, 
-  Clock, 
+import {
+  ChevronLeft,
+  Edit,
+  Trash2,
+  Calendar,
+  MapPin,
+  Users,
+  DollarSign,
+  Clock,
   Star,
   CheckCircle2,
   AlertCircle,
   MoreVertical,
   Download
 } from 'lucide-react';
+import { TourFormModal } from '../TourFormModal';
 
 export default function AdminTourDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   // Mock data for a specific tour
   const tour = {
     id: 'TRV-SP01',
@@ -49,8 +51,8 @@ export default function AdminTourDetailPage({ params }: { params: Promise<{ id: 
       {/* Top Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Link 
-            href="/admin/tours" 
+          <Link
+            href="/admin/tours"
             className="w-10 h-10 flex items-center justify-center bg-white border border-gray-200 rounded-xl text-gray-500 hover:text-blue-600 hover:border-blue-100 transition-all shadow-sm"
           >
             <ChevronLeft className="w-5 h-5" />
@@ -64,7 +66,10 @@ export default function AdminTourDetailPage({ params }: { params: Promise<{ id: 
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-all font-bold text-sm shadow-sm">
+          <button 
+            onClick={() => setIsEditModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-all font-bold text-sm shadow-sm"
+          >
             <Edit className="w-4 h-4 text-amber-500" />
             Chỉnh sửa
           </button>
@@ -125,7 +130,6 @@ export default function AdminTourDetailPage({ params }: { params: Promise<{ id: 
                     <th className="py-4 px-8 text-[10px] font-black text-gray-400 uppercase tracking-widest">Hành khách</th>
                     <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Chỗ</th>
                     <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Thanh toán</th>
-                    <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest">Trạng thái</th>
                     <th className="py-4 px-8 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right"></th>
                   </tr>
                 </thead>
@@ -139,9 +143,8 @@ export default function AdminTourDetailPage({ params }: { params: Promise<{ id: 
                       <td className="py-5 px-6 text-center font-black text-gray-900">{p.passengers}</td>
                       <td className="py-5 px-6 font-bold text-gray-900">{p.total.toLocaleString('vi-VN')}₫</td>
                       <td className="py-5 px-6">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${
-                          p.status === 'Đã thanh toán' ? 'bg-green-50 text-green-600' : 'bg-amber-50 text-amber-600'
-                        }`}>
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${p.status === 'Đã thanh toán' ? 'bg-green-50 text-green-600' : 'bg-amber-50 text-amber-600'
+                          }`}>
                           {p.status === 'Đã thanh toán' ? <CheckCircle2 className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
                           {p.status}
                         </span>
@@ -168,9 +171,8 @@ export default function AdminTourDetailPage({ params }: { params: Promise<{ id: 
             <div className="relative h-56">
               <Image src={tour.image} alt={tour.name} fill className="object-cover" />
               <div className="absolute top-4 left-4">
-                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg ${
-                  tour.status === 'Còn chỗ' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
-                }`}>
+                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg ${tour.status === 'Còn chỗ' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
+                  }`}>
                   {tour.status}
                 </span>
               </div>
@@ -219,7 +221,7 @@ export default function AdminTourDetailPage({ params }: { params: Promise<{ id: 
             <p className="text-blue-100 text-sm leading-relaxed">Tour hiện đã đạt 60% công suất. Cần đẩy mạnh marketing cho tuần cuối cùng để lấp đầy 8 chỗ còn lại.</p>
             <div className="pt-4 flex items-center gap-2">
               <div className="flex -space-x-3">
-                {[1,2,3].map(i => (
+                {[1, 2, 3].map(i => (
                   <div key={i} className="w-8 h-8 rounded-full border-2 border-blue-600 bg-blue-100 flex items-center justify-center text-[10px] font-black text-blue-600">
                     M{i}
                   </div>
@@ -230,6 +232,16 @@ export default function AdminTourDetailPage({ params }: { params: Promise<{ id: 
           </div>
         </div>
       </div>
+
+      {isEditModalOpen && (
+        <TourFormModal 
+          tour={{
+            ...tour,
+            date: tour.startDate, // Map field names to match modal expected props
+          }} 
+          onClose={() => setIsEditModalOpen(false)} 
+        />
+      )}
     </div>
   );
 }

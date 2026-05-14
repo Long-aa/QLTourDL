@@ -56,25 +56,36 @@ const ORDERS_DATA = [
   { name: 'Thg 7', total: 210 },
 ];
 
+import { ReportDownloadModal } from './ReportDownloadModal';
+
 export default function ReportsPage() {
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = React.useState(false);
+
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Header Info */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight text-gradient bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-blue-500">Báo cáo nâng cao</h1>
-          <p className="text-gray-500 text-sm mt-1 font-medium italic">Phân tích doanh thu và hiệu suất tour</p>
+          <h1 className="text-3xl font-black text-[#1e3a8a] tracking-tight">Báo cáo hệ thống</h1>
+          <p className="text-gray-400 text-sm mt-1 font-bold uppercase tracking-widest">Phân tích dữ liệu vận hành & doanh thu</p>
         </div>
-        <div className="flex items-center gap-2">
-          <button className="p-2.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all border border-gray-100 bg-white">
+        <div className="flex items-center gap-3">
+          <button className="p-3 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-2xl transition-all border border-gray-100 bg-white shadow-sm active:scale-95">
             <RefreshCw className="w-5 h-5" />
           </button>
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all text-sm font-bold shadow-lg shadow-blue-600/20 active:scale-95">
+          <button 
+            onClick={() => setIsDownloadModalOpen(true)}
+            className="flex items-center gap-2 px-6 py-3 bg-[#1e3a8a] text-white rounded-2xl hover:bg-blue-900 transition-all text-sm font-black shadow-xl shadow-blue-900/20 active:scale-95"
+          >
             <TrendingUp className="w-4 h-4" />
-            Tải báo cáo
+            Xuất báo cáo
           </button>
         </div>
       </div>
+
+      {isDownloadModalOpen && (
+        <ReportDownloadModal onClose={() => setIsDownloadModalOpen(false)} />
+      )}
 
       {/* Filter Bar */}
       <div className="bg-white/80 backdrop-blur-md p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-wrap items-end gap-6">

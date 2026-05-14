@@ -1,69 +1,171 @@
 'use client';
 
 import React from 'react';
-import { X, User, Phone, Briefcase, Globe, Save } from 'lucide-react';
+import { X, User, Phone, Briefcase, Globe, Save, Award, Power, Mail, Star, MapPin } from 'lucide-react';
 
 interface GuideFormModalProps {
+  guide?: any;
   onClose: () => void;
 }
 
-export function GuideFormModal({ onClose }: GuideFormModalProps) {
+export function GuideFormModal({ guide, onClose }: GuideFormModalProps) {
+  const isEdit = !!guide;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-900">Thêm Hướng dẫn viên Mới</h2>
-          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
-            <X className="w-5 h-5" />
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#1e3a8a]/20 backdrop-blur-md animate-in fade-in duration-300 p-4">
+      <div className="bg-white rounded-[40px] shadow-2xl shadow-blue-900/20 w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-white">
+        {/* Header */}
+        <div className="px-10 py-8 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-blue-50/50 to-transparent">
+          <div>
+            <h2 className="text-3xl font-black text-[#1e3a8a] tracking-tight">
+              {isEdit ? 'Cập nhật hồ sơ' : 'Thêm Hướng dẫn viên'}
+            </h2>
+            <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mt-1">
+              Quản lý thông tin nhân sự & chuyên môn
+            </p>
+          </div>
+          <button 
+            onClick={onClose} 
+            className="p-3 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all active:scale-90"
+          >
+            <X className="w-6 h-6" />
           </button>
         </div>
 
-        <div className="px-6 py-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
-              <User className="w-4 h-4 text-gray-400" /> Tên
-            </label>
-            <input type="text" placeholder="Nhập họ và tên đầy đủ" className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm" />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
-                <Phone className="w-4 h-4 text-gray-400" /> Số điện thoại
-              </label>
-              <input type="text" placeholder="+84 000 000 000" className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
-                <Briefcase className="w-4 h-4 text-gray-400" /> Kinh nghiệm
-              </label>
-              <div className="relative">
-                <input type="text" placeholder="Số năm" className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm" />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">năm</span>
+        {/* Body */}
+        <div className="p-10 space-y-10 max-h-[75vh] overflow-y-auto custom-scrollbar">
+          {/* Section: Personal Info */}
+          <div className="space-y-6">
+            <h3 className="text-xs font-black text-blue-600 uppercase tracking-[0.2em] flex items-center gap-2">
+              <User className="w-4 h-4" /> Thông tin cơ bản
+            </h3>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="col-span-2">
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Họ và tên</label>
+                <div className="relative group">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
+                  <input 
+                    type="text" 
+                    defaultValue={guide?.name}
+                    placeholder="Nguyễn Văn A" 
+                    className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-[20px] focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white outline-none transition-all text-sm font-bold text-gray-900" 
+                  />
+                </div>
+              </div>
+              <div className="col-span-1">
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Số điện thoại</label>
+                <div className="relative group">
+                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
+                  <input 
+                    type="text" 
+                    defaultValue={guide?.contact?.phone || guide?.phone}
+                    placeholder="+84 90 123 4567" 
+                    className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-[20px] focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white outline-none transition-all text-sm font-bold text-gray-900" 
+                  />
+                </div>
+              </div>
+              <div className="col-span-1">
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Email nội bộ</label>
+                <div className="relative group">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
+                  <input 
+                    type="email" 
+                    defaultValue={guide?.contact?.email || (guide?.name ? `${guide.name.toLowerCase().replace(/\s/g, '.')}@luxevoyage.com` : '')}
+                    placeholder="name@luxevoyage.com" 
+                    className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-[20px] focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white outline-none transition-all text-sm font-bold text-gray-900" 
+                  />
+                </div>
               </div>
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
-              <Globe className="w-4 h-4 text-gray-400" /> Ngôn ngữ
-            </label>
-            <input type="text" placeholder="Ví dụ: Tiếng Việt, Tiếng Anh, Tiếng Pháp..." className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm" />
-            <p className="text-[10px] text-gray-400 mt-1">Nhập các ngôn ngữ, cách nhau bằng dấu phẩy.</p>
+          {/* Section: Professional Info */}
+          <div className="space-y-6 pt-4">
+            <h3 className="text-xs font-black text-blue-600 uppercase tracking-[0.2em] flex items-center gap-2">
+              <Award className="w-4 h-4" /> Năng lực chuyên môn
+            </h3>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="col-span-1">
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Kinh nghiệm công tác</label>
+                <div className="relative group">
+                  <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
+                  <input 
+                    type="text" 
+                    defaultValue={guide?.experience || guide?.exp}
+                    placeholder="Ví dụ: 5 năm chuyên tuyến..." 
+                    className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-[20px] focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white outline-none transition-all text-sm font-bold text-gray-900" 
+                  />
+                </div>
+              </div>
+              <div className="col-span-1">
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Thị trường trọng điểm</label>
+                <div className="relative group">
+                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
+                  <input 
+                    type="text" 
+                    defaultValue="Châu Âu, Nhật Bản"
+                    placeholder="Ví dụ: Đông Bắc Á, Nội địa..." 
+                    className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-[20px] focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white outline-none transition-all text-sm font-bold text-gray-900" 
+                  />
+                </div>
+              </div>
+              <div className="col-span-2">
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Ngôn ngữ thông thạo</label>
+                <div className="relative group">
+                  <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
+                  <input 
+                    type="text" 
+                    defaultValue={guide?.languages?.join(', ') || guide?.lang}
+                    placeholder="Tiếng Anh, Tiếng Nhật, Tiếng Pháp..." 
+                    className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-[20px] focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white outline-none transition-all text-sm font-bold text-gray-900" 
+                  />
+                </div>
+              </div>
+              <div className="col-span-2">
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Chứng chỉ & Bằng cấp</label>
+                <div className="relative group">
+                  <Award className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
+                  <input 
+                    type="text" 
+                    defaultValue={guide?.certificates}
+                    placeholder="Thẻ HDV Quốc tế, Chứng chỉ Sơ cấp cứu..." 
+                    className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-[20px] focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white outline-none transition-all text-sm font-bold text-gray-900" 
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
-            <select className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm bg-white cursor-pointer">
-              <option value="ready">Sẵn sàng</option>
-              <option value="busy">Đang bận</option>
-            </select>
+          {/* Section: Operational Status */}
+          <div className="p-8 bg-blue-50/50 rounded-[32px] border border-blue-100 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-blue-600 shadow-sm">
+                <Power className="w-7 h-7" />
+              </div>
+              <div>
+                <p className="text-base font-black text-gray-900 tracking-tight">Kích hoạt trạng thái vận hành</p>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Cho phép xếp lịch dẫn tour ngay lập tức</p>
+              </div>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" className="sr-only peer" defaultChecked={guide?.status === 'Sẵn sàng'} />
+              <div className="w-16 h-8 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-7 after:w-7 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
           </div>
         </div>
 
-        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex justify-end gap-3">
-          <button onClick={onClose} className="px-6 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">Hủy</button>
-          <button className="px-6 py-2 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-lg shadow-blue-600/20"><Save className="w-4 h-4" /> Lưu</button>
+        {/* Footer */}
+        <div className="px-10 py-8 border-t border-gray-100 bg-gray-50/50 flex justify-end gap-4">
+          <button 
+            onClick={onClose} 
+            className="px-8 py-4 bg-white border-2 border-gray-100 text-gray-700 rounded-full font-black text-sm hover:border-gray-200 hover:bg-gray-50 transition-all active:scale-95"
+          >
+            Hủy bỏ
+          </button>
+          <button className="px-10 py-4 bg-[#1e3a8a] text-white rounded-full font-black text-sm hover:bg-blue-900 transition-all shadow-xl shadow-blue-900/20 flex items-center gap-2 active:scale-95">
+            <Save className="w-4 h-4" />
+            Lưu thay đổi
+          </button>
         </div>
       </div>
     </div>

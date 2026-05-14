@@ -87,6 +87,17 @@ const STATUS_ICONS = {
 
 export default function OrdersPage() {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [selectedOrder, setSelectedOrder] = React.useState<any>(null);
+
+  const handleCreateNew = () => {
+    setSelectedOrder(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEditOrder = (order: any) => {
+    setSelectedOrder(order);
+    setIsModalOpen(true);
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -97,7 +108,7 @@ export default function OrdersPage() {
           <p className="text-gray-500 text-sm mt-1">Quản lý và theo dõi các giao dịch đặt chỗ của khách hàng.</p>
         </div>
         <button 
-          onClick={() => setIsModalOpen(true)}
+          onClick={handleCreateNew}
           className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all text-sm font-medium shadow-lg shadow-blue-600/20 active:scale-95"
         >
           <Plus className="w-4 h-4" />
@@ -205,7 +216,11 @@ export default function OrdersPage() {
                         <Link href={`/admin/orders/${order.id.replace('#', '')}`} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Xem chi tiết">
                           <Eye className="w-3.5 h-3.5" />
                         </Link>
-                        <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Chỉnh sửa">
+                        <button 
+                          onClick={() => handleEditOrder(order)}
+                          className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" 
+                          title="Chỉnh sửa"
+                        >
                           <Edit className="w-3.5 h-3.5" />
                         </button>
                         <button 
@@ -243,7 +258,12 @@ export default function OrdersPage() {
         </div>
       </div>
 
-      {isModalOpen && <OrderFormModal onClose={() => setIsModalOpen(false)} />}
+      {isModalOpen && (
+        <OrderFormModal 
+          order={selectedOrder} 
+          onClose={() => setIsModalOpen(false)} 
+        />
+      )}
     </div>
   );
 }

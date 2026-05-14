@@ -1,128 +1,135 @@
 'use client';
 
 import React from 'react';
-import { X, User, Mail, Phone, Shield, Briefcase, Calendar, Save, Camera } from 'lucide-react';
+import { X, User, Mail, Phone, Briefcase, Camera, ChevronDown, Save } from 'lucide-react';
 
 interface EmployeeFormModalProps {
+  employee?: any;
   onClose: () => void;
 }
 
-export function EmployeeFormModal({ onClose }: EmployeeFormModalProps) {
+export function EmployeeFormModal({ employee, onClose }: EmployeeFormModalProps) {
+  const isEdit = !!employee;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/40 backdrop-blur-sm animate-in fade-in duration-300 p-4">
+      <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-gray-100">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">Thêm Nhân Viên Mới</h2>
-            <p className="text-xs text-gray-500 mt-0.5">Thiết lập tài khoản và quyền hạn nhân sự</p>
-          </div>
-          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
-            <X className="w-5 h-5" />
+        <div className="px-10 py-8 border-b border-gray-100 flex items-center justify-between">
+          <h2 className="text-2xl font-black text-[#1e3a8a] tracking-tight">
+            {isEdit ? 'Chỉnh sửa thông tin nhân sự' : 'Thêm nhân sự mới'}
+          </h2>
+          <button 
+            onClick={onClose} 
+            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+          >
+            <X className="w-6 h-6" />
           </button>
         </div>
 
         {/* Body */}
-        <div className="px-6 py-6 max-h-[calc(100vh-200px)] overflow-y-auto">
-          <form className="space-y-6">
-            {/* Profile Section */}
-            <div className="flex items-center gap-6 pb-6 border-b border-gray-50">
-              <div className="relative group">
-                <div className="w-20 h-20 rounded-2xl bg-gray-50 border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden transition-all group-hover:border-blue-400">
-                  <User className="w-8 h-8 text-gray-300" />
-                </div>
-                <button type="button" className="absolute -bottom-2 -right-2 p-1.5 bg-blue-600 text-white rounded-lg shadow-lg hover:bg-blue-700 transition-transform active:scale-90">
-                  <Camera className="w-3.5 h-3.5" />
-                </button>
+        <div className="p-10 space-y-10">
+          {/* Avatar Section */}
+          <div className="flex items-center gap-6">
+            <div className="relative group">
+              <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-100 bg-gray-50 flex items-center justify-center">
+                {employee?.avatar ? (
+                  <img src={employee.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <User className="w-10 h-10 text-gray-300" />
+                )}
               </div>
-              <div className="flex-1 space-y-1">
-                <h4 className="text-sm font-bold text-gray-900">Ảnh chân dung</h4>
-                <p className="text-xs text-gray-500">Định dạng JPG, PNG. Tối đa 2MB.</p>
-              </div>
+              <button className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
+                <Camera className="w-6 h-6 text-white" />
+              </button>
             </div>
-
-            <div className="grid grid-cols-2 gap-5">
-              {/* Họ tên */}
-              <div className="col-span-2 sm:col-span-1">
-                <label className="block text-sm font-bold text-gray-700 mb-1.5">Họ và tên</label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input type="text" placeholder="Nguyễn Văn A" className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm" />
-                </div>
-              </div>
-
-              {/* Email */}
-              <div className="col-span-2 sm:col-span-1">
-                <label className="block text-sm font-bold text-gray-700 mb-1.5">Email công việc</label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input type="email" placeholder="name@luxevoyage.vn" className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm" />
-                </div>
-              </div>
-
-              {/* Số điện thoại */}
-              <div className="col-span-2 sm:col-span-1">
-                <label className="block text-sm font-bold text-gray-700 mb-1.5">Số điện thoại</label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input type="text" placeholder="090 ..." className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm" />
-                </div>
-              </div>
-
-              {/* Chức vụ */}
-              <div className="col-span-2 sm:col-span-1">
-                <label className="block text-sm font-bold text-gray-700 mb-1.5">Chức vụ</label>
-                <div className="relative">
-                  <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <select className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm bg-white cursor-pointer">
-                    <option value="admin">Quản trị viên</option>
-                    <option value="staff">Nhân viên</option>
-                    <option value="manager">Quản lý vùng</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Ngày vào làm */}
-              <div className="col-span-2 sm:col-span-1">
-                <label className="block text-sm font-bold text-gray-700 mb-1.5">Ngày vào làm</label>
-                <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input type="date" className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm text-gray-700" />
-                </div>
-              </div>
-
-              {/* Trạng thái */}
-              <div className="col-span-2 sm:col-span-1">
-                <label className="block text-sm font-bold text-gray-700 mb-1.5">Trạng thái</label>
-                <select className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm bg-white cursor-pointer">
-                  <option value="active">Đang làm việc</option>
-                  <option value="inactive">Đã nghỉ việc</option>
-                </select>
-              </div>
+            <div className="space-y-2">
+              <p className="text-sm font-black text-gray-900">Ảnh đại diện</p>
+              <p className="text-xs font-bold text-gray-400">Định dạng JPG, PNG. Kích thước tối đa 5MB.</p>
+              <button className="px-4 py-2 bg-blue-50 text-blue-600 rounded-full text-xs font-black hover:bg-blue-100 transition-colors">
+                Tải ảnh mới
+              </button>
             </div>
+          </div>
 
-            {/* Quyền hạn */}
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                <Shield className="w-4 h-4 text-blue-600" /> Phân quyền hệ thống
+          {/* Form Fields */}
+          <div className="grid grid-cols-2 gap-8">
+            <div className="col-span-1">
+              <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">
+                Họ và tên <span className="text-red-500">*</span>
               </label>
-              <div className="grid grid-cols-2 gap-3 p-4 rounded-2xl bg-gray-50 border border-gray-100">
-                {['Quản lý Tour', 'Quản lý Đơn hàng', 'Quản lý Khách hàng', 'Quản lý Tài chính', 'Báo cáo hệ thống', 'Cấu hình chung'].map((perm, i) => (
-                  <label key={i} className="flex items-center gap-3 cursor-pointer group">
-                    <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 transition-all" />
-                    <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors font-medium">{perm}</span>
-                  </label>
-                ))}
+              <input 
+                type="text" 
+                defaultValue={employee?.name}
+                placeholder="Nguyễn Văn An" 
+                className="w-full px-6 py-4 bg-gray-100/50 border border-transparent rounded-[20px] focus:bg-white focus:border-blue-500 outline-none transition-all text-sm font-bold text-gray-900" 
+              />
+            </div>
+            <div className="col-span-1">
+              <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">
+                Email <span className="text-red-500">*</span>
+              </label>
+              <input 
+                type="email" 
+                defaultValue={employee?.email}
+                placeholder="an.nguyen@luxevoyage.com" 
+                className="w-full px-6 py-4 bg-gray-100/50 border border-transparent rounded-[20px] focus:bg-white focus:border-blue-500 outline-none transition-all text-sm font-bold text-gray-900" 
+              />
+            </div>
+            <div className="col-span-1">
+              <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Số điện thoại</label>
+              <input 
+                type="text" 
+                defaultValue={employee?.phone}
+                placeholder="0901234567" 
+                className="w-full px-6 py-4 bg-gray-100/50 border border-transparent rounded-[20px] focus:bg-white focus:border-blue-500 outline-none transition-all text-sm font-bold text-gray-900" 
+              />
+            </div>
+            <div className="col-span-1">
+              <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">
+                Chức vụ <span className="text-red-500">*</span>
+              </label>
+              <div className="relative group">
+                <select 
+                  defaultValue={employee?.subRole || employee?.role}
+                  className="w-full px-6 py-4 bg-gray-100/50 border border-transparent rounded-[20px] focus:bg-white focus:border-blue-500 outline-none transition-all text-sm font-bold text-gray-900 appearance-none cursor-pointer"
+                >
+                  <option value="Nhân viên Sales">Nhân viên Sales</option>
+                  <option value="Quản trị viên">Quản trị viên</option>
+                  <option value="Senior Admin">Senior Admin</option>
+                  <option value="Kế toán">Kế toán</option>
+                </select>
+                <ChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none group-focus-within:rotate-180 transition-transform" />
               </div>
             </div>
-          </form>
+            <div className="col-span-2">
+              <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Trạng thái</label>
+              <div className="relative group">
+                <select 
+                  defaultValue={employee?.status}
+                  className="w-full px-6 py-4 bg-gray-100/50 border border-transparent rounded-[20px] focus:bg-white focus:border-blue-500 outline-none transition-all text-sm font-bold text-gray-900 appearance-none cursor-pointer"
+                >
+                  <option value="Đang làm việc">Đang làm việc</option>
+                  <option value="Nghỉ phép">Nghỉ phép</option>
+                  <option value="Đã nghỉ việc">Đã nghỉ việc</option>
+                </select>
+                <ChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none group-focus-within:rotate-180 transition-transform" />
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-5 border-t border-gray-100 bg-gray-50/50 flex justify-end gap-3">
-          <button onClick={onClose} className="px-6 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 bg-white hover:bg-gray-100 transition-all">Hủy bỏ</button>
-          <button className="px-8 py-2.5 bg-blue-600 rounded-xl text-sm font-bold text-white hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 active:scale-95 flex items-center gap-2">
-            <Save className="w-4 h-4" /> Lưu thông tin
+        <div className="px-10 py-8 border-t border-gray-100 bg-gray-50/30 flex justify-end gap-4">
+          <button 
+            onClick={onClose} 
+            className="px-10 py-3.5 bg-gray-200 text-gray-700 rounded-xl font-black text-sm hover:bg-gray-300 transition-all active:scale-95"
+          >
+            Hủy
+          </button>
+          <button className="px-10 py-3.5 bg-blue-600 text-white rounded-xl font-black text-sm hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/30 flex items-center gap-2 active:scale-95">
+            <Save className="w-4 h-4" />
+            Lưu thay đổi
           </button>
         </div>
       </div>

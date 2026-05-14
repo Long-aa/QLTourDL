@@ -55,6 +55,17 @@ const MOCK_TOURS = [
 
 export default function ToursPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTour, setSelectedTour] = useState<any>(null);
+
+  const handleAddTour = () => {
+    setSelectedTour(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEditTour = (tour: any) => {
+    setSelectedTour(tour);
+    setIsModalOpen(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -94,7 +105,7 @@ export default function ToursPage() {
           </select>
         </div>
         <button 
-          onClick={() => setIsModalOpen(true)}
+          onClick={handleAddTour}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
         >
           <Plus className="w-4 h-4" />
@@ -180,7 +191,7 @@ export default function ToursPage() {
                         <Eye className="w-4 h-4" />
                       </Link>
                       <button 
-                        onClick={() => setIsModalOpen(true)}
+                        onClick={() => handleEditTour(tour)}
                         className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all"
                         title="Chỉnh sửa"
                       >
@@ -220,7 +231,15 @@ export default function ToursPage() {
         </div>
       </div>
 
-      {isModalOpen && <TourFormModal onClose={() => setIsModalOpen(false)} />}
+      {isModalOpen && (
+        <TourFormModal 
+          tour={selectedTour} 
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedTour(null);
+          }} 
+        />
+      )}
     </div>
   );
 }

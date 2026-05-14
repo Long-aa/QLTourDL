@@ -66,6 +66,22 @@ export function Sidebar() {
           );
         })}
       </nav>
+
+      <div className="p-4 border-t border-gray-100">
+        <Link
+          href="/admin/profile"
+          className={`
+            flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors
+            ${pathname === '/admin/profile' 
+              ? 'bg-blue-600 text-white' 
+              : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+            }
+          `}
+        >
+          <UserCog className="w-5 h-5" />
+          Hồ sơ của tôi
+        </Link>
+      </div>
     </aside>
   );
 }

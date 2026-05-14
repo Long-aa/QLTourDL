@@ -5,20 +5,25 @@ import { X, Search, MapPin, User, Calendar, CreditCard, ShoppingBag } from 'luci
 
 interface OrderFormModalProps {
   onClose: () => void;
+  order?: any;
 }
 
-export function OrderFormModal({ onClose }: OrderFormModalProps) {
+export function OrderFormModal({ onClose, order }: OrderFormModalProps) {
+  const isEdit = !!order;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200 p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white sticky top-0 z-10">
           <div>
             <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
               <ShoppingBag className="w-5 h-5 text-blue-600" />
-              Tạo Đơn Hàng Mới
+              {isEdit ? `Chỉnh sửa Đơn hàng ${order.id || ''}` : 'Tạo Đơn Hàng Mới'}
             </h2>
-            <p className="text-xs text-gray-500">Thiết lập lộ trình và dịch vụ cho khách hàng</p>
+            <p className="text-xs text-gray-500">
+              {isEdit ? 'Cập nhật lộ trình và dịch vụ cho khách hàng' : 'Thiết lập lộ trình và dịch vụ cho khách hàng'}
+            </p>
           </div>
           <button 
             onClick={onClose}
@@ -41,6 +46,7 @@ export function OrderFormModal({ onClose }: OrderFormModalProps) {
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
+                  defaultValue={order?.customer?.name || ''}
                   placeholder="Tìm kiếm khách hàng theo tên, email hoặc SĐT..."
                   className="w-full pl-11 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm"
                 />
@@ -56,17 +62,22 @@ export function OrderFormModal({ onClose }: OrderFormModalProps) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-gray-500 ml-1">Chọn Tour</label>
-                  <select className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm bg-white cursor-pointer">
+                  <select 
+                    defaultValue={order?.tour || ''}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm bg-white cursor-pointer"
+                  >
                     <option value="">-- Chọn Tour --</option>
-                    <option value="maldives">Maldives Private Villa Resort</option>
-                    <option value="swiss">Swiss Alps Heli-Skiing</option>
-                    <option value="kyoto">Kyoto Cherry Blossom Tour</option>
+                    <option value="Maldives Private Villa Resort">Maldives Private Villa Resort</option>
+                    <option value="Swiss Alps Heli-Skiing">Swiss Alps Heli-Skiing</option>
+                    <option value="Kyoto Cherry Blossom Tour">Kyoto Cherry Blossom Tour</option>
+                    <option value="Phú Quốc Luxury Resort">Phú Quốc Luxury Resort</option>
                   </select>
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-gray-500 ml-1">Ngày khởi hành</label>
                   <input
                     type="date"
+                    defaultValue={order?.date ? "2024-10-12" : ""}
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm text-gray-700"
                   />
                 </div>
@@ -75,7 +86,7 @@ export function OrderFormModal({ onClose }: OrderFormModalProps) {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-gray-500 ml-1">Số lượng người lớn</label>
-                  <input type="number" defaultValue={1} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm" />
+                  <input type="number" defaultValue={2} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm" />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-gray-500 ml-1">Trẻ em (2-12t)</label>
@@ -105,6 +116,7 @@ export function OrderFormModal({ onClose }: OrderFormModalProps) {
                 </div>
                 <textarea
                   rows={2}
+                  defaultValue={isEdit ? "Phòng hướng biển, tầng cao, ưu tiên nhận phòng sớm." : ""}
                   placeholder="Yêu cầu đặc biệt của khách (ví dụ: Ăn chay, Phòng hướng biển...)"
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm resize-none bg-white"
                 ></textarea>
@@ -117,18 +129,20 @@ export function OrderFormModal({ onClose }: OrderFormModalProps) {
         <div className="px-6 py-5 border-t border-gray-100 bg-gray-50/50 flex justify-end gap-3">
           <div className="mr-auto flex flex-col">
             <span className="text-[10px] font-bold text-gray-400 uppercase">Tạm tính</span>
-            <span className="text-xl font-black text-blue-600">0 VNĐ</span>
+            <span className="text-xl font-black text-blue-600">
+              {isEdit ? (order.amount || 0).toLocaleString('vi-VN') : '0'} VNĐ
+            </span>
           </div>
           <button 
             onClick={onClose}
-            className="px-6 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 bg-white hover:bg-gray-100 transition-all"
+            className="px-6 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 bg-white hover:bg-gray-100 transition-all active:scale-95"
           >
-            Hủy bỏ
+            Hủy
           </button>
           <button 
-            className="px-8 py-2.5 bg-blue-600 rounded-xl text-sm font-medium text-white hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20"
+            className="px-8 py-2.5 bg-blue-600 rounded-xl text-sm font-medium text-white hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 active:scale-95"
           >
-            Xác nhận tạo đơn
+            {isEdit ? 'Lưu thay đổi' : 'Xác nhận tạo đơn'}
           </button>
         </div>
       </div>

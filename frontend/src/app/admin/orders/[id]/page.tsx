@@ -21,9 +21,20 @@ import {
   Package,
   Info
 } from 'lucide-react';
+import { OrderFormModal } from '../OrderFormModal';
 
 export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: orderId } = React.use(params);
+  const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
+
+  // Mock current order data for editing
+  const currentOrder = {
+    id: orderId,
+    customer: { name: 'Nguyễn Hoàng Anh' },
+    tour: 'Maldives Cổ Điển - Resort 5 Sao Cố Định',
+    date: '15/11/2023',
+    amount: 131220000
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
@@ -61,7 +72,10 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                 <Package className="w-5 h-5 text-blue-600" />
                 Thông tin Đơn hàng
               </h3>
-              <button className="text-sm font-medium text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 border border-transparent hover:border-blue-100">
+              <button 
+                onClick={() => setIsEditModalOpen(true)}
+                className="text-sm font-medium text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 border border-transparent hover:border-blue-100"
+              >
                 <Edit2 className="w-3.5 h-3.5" />
                 Chỉnh sửa
               </button>
@@ -210,6 +224,13 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
           </div>
         </div>
       </div>
+
+      {isEditModalOpen && (
+        <OrderFormModal 
+          order={currentOrder} 
+          onClose={() => setIsEditModalOpen(false)} 
+        />
+      )}
     </div>
   );
 }

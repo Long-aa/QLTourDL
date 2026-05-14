@@ -15,6 +15,7 @@ import {
   Briefcase,
   Users
 } from 'lucide-react';
+import Link from 'next/link';
 import { EmployeeFormModal } from './EmployeeFormModal';
 
 const MOCK_EMPLOYEES = [
@@ -133,11 +134,15 @@ export default function EmployeesPage() {
               {MOCK_EMPLOYEES.map((emp) => (
                 <tr key={emp.id} className="group hover:bg-blue-50/30 transition-colors">
                   <td className="py-4 px-6">
-                    <img src={emp.avatar} alt={emp.name} className="w-10 h-10 rounded-xl bg-gray-100 border border-gray-100 group-hover:scale-105 transition-transform" />
+                    <Link href={`/admin/employees/${emp.id}`}>
+                      <img src={emp.avatar} alt={emp.name} className="w-10 h-10 rounded-xl bg-gray-100 border border-gray-100 group-hover:scale-105 transition-transform" />
+                    </Link>
                   </td>
                   <td className="py-4 px-6">
-                    <p className="font-bold text-gray-900 text-sm whitespace-nowrap">{emp.name}</p>
-                    <p className="text-[10px] text-gray-400 font-medium uppercase mt-0.5">{emp.id}</p>
+                    <Link href={`/admin/employees/${emp.id}`} className="hover:text-blue-600 transition-colors">
+                      <p className="font-bold text-gray-900 text-sm whitespace-nowrap">{emp.name}</p>
+                      <p className="text-[10px] text-gray-400 font-medium uppercase mt-0.5">{emp.id}</p>
+                    </Link>
                   </td>
                   <td className="py-4 px-6">
                     <div className="flex items-center gap-2 text-sm text-gray-600 font-medium">

@@ -1,125 +1,150 @@
 'use client';
 
 import React from 'react';
-import { X, Save } from 'lucide-react';
+import { X, Building2, LayoutGrid, Mail, Phone, MapPin, Power, Check } from 'lucide-react';
 
 interface SupplierFormModalProps {
   onClose: () => void;
+  supplier?: any;
 }
 
-export function SupplierFormModal({ onClose }: SupplierFormModalProps) {
+export function SupplierFormModal({ onClose, supplier }: SupplierFormModalProps) {
+  const isEdit = !!supplier;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200 p-4">
+      <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-xl overflow-hidden animate-in zoom-in-95 duration-200 border border-white/20">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-900">Thêm Nhà Cung Cấp Mới</h2>
+        <div className="px-10 py-6 flex items-center justify-between">
+          <h2 className="text-2xl font-black text-[#1e3a8a] tracking-tight">
+            {isEdit ? 'Thông tin Nhà cung cấp' : 'Thêm Nhà Cung Cấp Mới'}
+          </h2>
           <button 
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-50 rounded-full transition-all"
           >
-            <X className="w-5 h-5" />
+            <X className="w-6 h-6" />
           </button>
         </div>
 
         {/* Body */}
-        <div className="px-6 py-6 max-h-[calc(100vh-200px)] overflow-y-auto">
-          <form className="space-y-4">
-            {/* Tên nhà cung cấp */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tên nhà cung cấp <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                placeholder="Nhập tên nhà cung cấp..."
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm"
-              />
-            </div>
+        <div className="px-10 pb-10 space-y-6">
+          <form className="space-y-6">
+            <div className="grid grid-cols-2 gap-6">
+              {/* Tên thương hiệu */}
+              <div className="col-span-1">
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Tên Thương Hiệu</label>
+                <div className="relative group">
+                  <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
+                  <input
+                    type="text"
+                    defaultValue={supplier?.name || ''}
+                    placeholder="Nhập tên nhà cung cấp"
+                    className="w-full pl-11 pr-4 py-3 bg-gray-50/50 border border-gray-100 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white outline-none transition-all text-sm font-bold text-gray-900"
+                  />
+                </div>
+              </div>
 
-            <div className="grid grid-cols-2 gap-4">
               {/* Loại dịch vụ */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Loại dịch vụ <span className="text-red-500">*</span>
-                </label>
-                <select className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm bg-white cursor-pointer">
-                  <option value="">Chọn loại dịch vụ</option>
-                  <option value="hotel">Khách sạn</option>
-                  <option value="transport">Vận chuyển</option>
-                  <option value="restaurant">Ẩm thực</option>
-                  <option value="visa">Dịch vụ Visa</option>
-                </select>
+              <div className="col-span-1">
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Loại Dịch Vụ</label>
+                <div className="relative group">
+                  <LayoutGrid className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
+                  <select 
+                    defaultValue={supplier?.type || ''}
+                    className="w-full pl-11 pr-10 py-3 bg-gray-50/50 border border-gray-100 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white outline-none transition-all text-sm font-bold text-gray-900 appearance-none cursor-pointer"
+                  >
+                    <option value="">Chọn loại dịch vụ</option>
+                    <option value="Khách sạn">Khách sạn</option>
+                    <option value="Vận chuyển">Vận chuyển</option>
+                    <option value="Ẩm thực">Ẩm thực</option>
+                    <option value="Nghỉ dưỡng">Nghỉ dưỡng</option>
+                  </select>
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7"></path></svg>
+                  </div>
+                </div>
               </div>
 
-              {/* Trạng thái */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
-                <select className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm bg-white cursor-pointer">
-                  <option value="active">Hoạt động</option>
-                  <option value="inactive">Tạm ngưng</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
               {/* Email */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email liên hệ</label>
-                <input
-                  type="email"
-                  placeholder="email@domain.com"
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm"
-                />
+              <div className="col-span-1">
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Email Liên Hệ</label>
+                <div className="relative group">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
+                  <input
+                    type="email"
+                    defaultValue={supplier?.contact?.email || ''}
+                    placeholder="contact@supplier.com"
+                    className="w-full pl-11 pr-4 py-3 bg-gray-50/50 border border-gray-100 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white outline-none transition-all text-sm font-bold text-gray-900"
+                  />
+                </div>
               </div>
 
               {/* Số điện thoại */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Số điện thoại</label>
-                <input
-                  type="text"
-                  placeholder="+84 ..."
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm"
-                />
+              <div className="col-span-1">
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Số Điện Thoại</label>
+                <div className="relative group">
+                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
+                  <input
+                    type="text"
+                    defaultValue={supplier?.contact?.phone || ''}
+                    placeholder="+84 123 456 789"
+                    className="w-full pl-11 pr-4 py-3 bg-gray-50/50 border border-gray-100 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white outline-none transition-all text-sm font-bold text-gray-900"
+                  />
+                </div>
+              </div>
+
+              {/* Địa chỉ */}
+              <div className="col-span-2">
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Địa Chỉ</label>
+                <div className="relative group">
+                  <MapPin className="absolute left-4 top-4 w-4 h-4 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
+                  <textarea
+                    rows={3}
+                    defaultValue={supplier?.address || ''}
+                    placeholder="Nhập địa chỉ đầy đủ"
+                    className="w-full pl-11 pr-4 py-3 bg-gray-50/50 border border-gray-100 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white outline-none transition-all text-sm font-bold text-gray-900 resize-none"
+                  ></textarea>
+                </div>
               </div>
             </div>
 
-            {/* Địa chỉ */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Địa chỉ</label>
-              <input
-                type="text"
-                placeholder="Nhập địa chỉ đầy đủ..."
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm"
-              />
-            </div>
-
-            {/* Mô tả */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả / Ghi chú</label>
-              <textarea
-                rows={4}
-                placeholder="Nhập thông tin chi tiết về nhà cung cấp, chính sách đặc biệt..."
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm resize-none"
-              ></textarea>
+            {/* Trạng thái hoạt động */}
+            <div className="p-6 bg-blue-50/50 rounded-2xl border border-blue-100/50 flex items-center justify-between group">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-blue-600 shadow-sm border border-blue-50">
+                  <Power className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-gray-900">Trạng thái hoạt động</h4>
+                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-tight mt-0.5">Cho phép nhà cung cấp này nhận booking</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-black text-blue-600 uppercase tracking-widest">Active</span>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" defaultChecked={supplier?.status === 'Đang hoạt động'} className="sr-only peer" />
+                  <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:start-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-6 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+              </div>
             </div>
           </form>
-        </div>
 
-        {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex justify-end gap-3">
-          <button 
-            onClick={onClose}
-            className="px-6 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
-          >
-            Hủy
-          </button>
-          <button 
-            className="px-6 py-2 bg-blue-600 rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-lg shadow-blue-600/20"
-          >
-            <Save className="w-4 h-4" />
-            Lưu
-          </button>
+          {/* Footer Buttons */}
+          <div className="flex items-center justify-end gap-4 pt-4">
+            <button 
+              onClick={onClose}
+              className="px-8 py-3 bg-white border-2 border-gray-100 rounded-xl text-sm font-black text-gray-500 hover:bg-gray-50 hover:text-gray-900 hover:border-gray-200 transition-all active:scale-95 shadow-sm"
+            >
+              Hủy
+            </button>
+            <button 
+              className="px-10 py-3 bg-[#1e60ff] rounded-xl text-sm font-black text-white hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 active:scale-95 flex items-center gap-2"
+            >
+              <Check className="w-4 h-4 stroke-[3px]" />
+              Lưu thông tin
+            </button>
+          </div>
         </div>
       </div>
     </div>
