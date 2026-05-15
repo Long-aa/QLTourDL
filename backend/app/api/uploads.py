@@ -8,27 +8,27 @@ router = APIRouter()
 async def upload_file(file: UploadFile = File(...)):
     try:
         content = await file.read()
-        file_url = await storage_service.upload_file(
+        res = await storage_service.upload_file(
             content, 
             file.filename, 
             file.content_type
         )
-        return {"url": file_url}
+        return res
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/upload-multiple")
 async def upload_multiple_files(files: List[UploadFile] = File(...)):
-    urls = []
+    results = []
     for file in files:
         try:
             content = await file.read()
-            file_url = await storage_service.upload_file(
+            res = await storage_service.upload_file(
                 content, 
                 file.filename, 
                 file.content_type
             )
-            urls.append(file_url)
+            results.append(res)
         except Exception as e:
             continue
-    return {"urls": urls}
+    return results

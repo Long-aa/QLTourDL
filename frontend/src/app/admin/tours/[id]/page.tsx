@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -16,35 +16,58 @@ import {
   CheckCircle2,
   AlertCircle,
   MoreVertical,
-  Download
+  Download,
+  Loader2,
+  Image as ImageIcon
 } from 'lucide-react';
 import { TourFormModal } from '../TourFormModal';
+import { tourService } from '@/services/tour.service';
 
 export default function AdminTourDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  // Mock data for a specific tour
-  const tour = {
-    id: 'TRV-SP01',
-    name: 'Khám phá Sapa Mùa Lúa Chín 3N2Đ',
-    destination: 'Sapa, Lào Cai',
-    price: 3500000,
-    totalBooked: 12,
-    capacity: 20,
-    status: 'Còn chỗ',
-    startDate: '15/10/2023',
-    endDate: '17/10/2023',
-    createdAt: '01/09/2023',
-    rating: 4.8,
-    reviews: 12,
-    image: 'https://images.unsplash.com/photo-1523731407965-2430cd12f5e4?auto=format&fit=crop&q=80&w=1200',
-    revenue: 42000000,
-    participants: [
-      { id: 'BK-001', name: 'Nguyễn Văn A', email: 'vanna@gmail.com', phone: '0901234567', passengers: 2, total: 7000000, date: '10/09/2023', status: 'Đã thanh toán' },
-      { id: 'BK-005', name: 'Trần Thị B', email: 'thib@gmail.com', phone: '0912345678', passengers: 1, total: 3500000, date: '12/09/2023', status: 'Chờ thanh toán' },
-      { id: 'BK-012', name: 'Lê Văn C', email: 'vanc@gmail.com', phone: '0987654321', passengers: 4, total: 14000000, date: '15/09/2023', status: 'Đã thanh toán' },
-    ]
+  const [tour, setTour] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchTour();
+  }, [id]);
+
+  const fetchTour = async () => {
+    try {
+      setLoading(true);
+      const data = await tourService.getById(Number(id));
+      setTour(data);
+    } catch (err) {
+      console.error('Error fetching tour:', err);
+      setError('Không thể tải thông tin tour.');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-3">
+        <Loader2 className="w-10 h-10 text-blue-500 animate-spin" />
+        <p className="text-gray-500">Đang tải chi tiết tour...</p>
+      </div>
+    );
+  }
+
+  if (error || !tour) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-3 text-red-500">
+        <AlertCircle className="w-10 h-10" />
+        <p>{error || 'Tour không tồn tại'}</p>
+        <Link href="/admin/tours" className="text-blue-600 hover:underline text-sm font-medium">Quay lại danh sách</Link>
+      </div>
+    );
+  }
+
+  // Empty participants list for new tour as requested
+  const participants: any[] = [];
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-12">
@@ -60,9 +83,9 @@ export default function AdminTourDetailPage({ params }: { params: Promise<{ id: 
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md uppercase tracking-wider">#{tour.id}</span>
-              <span className="text-xs font-bold text-gray-400">Tạo ngày: {tour.createdAt}</span>
+              <span className="text-xs font-bold text-gray-400">Tạo ngày: {new Date(tour.created_at).toLocaleDateString('vi-VN')}</span>
             </div>
-            <h1 className="text-2xl font-black text-gray-900 leading-tight">{tour.name}</h1>
+            <h1 className="text-2xl font-black text-gray-900 leading-tight dark:text-white">{tour.name}</h1>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -85,47 +108,49 @@ export default function AdminTourDetailPage({ params }: { params: Promise<{ id: 
         <div className="lg:col-span-2 space-y-8">
           {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white p-6 rounded-[24px] border border-gray-100 shadow-sm space-y-4">
-              <div className="w-10 h-10 bg-green-50 text-green-600 rounded-xl flex items-center justify-center">
+            <div className="bg-white dark:bg-gray-900 p-6 rounded-[24px] border border-gray-100 dark:border-gray-800 shadow-sm space-y-4 transition-colors">
+              <div className="w-10 h-10 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-xl flex items-center justify-center">
                 <DollarSign className="w-5 h-5" />
               </div>
               <div>
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Doanh thu</p>
-                <p className="text-2xl font-black text-gray-900">{tour.revenue.toLocaleString('vi-VN')}₫</p>
+                <p className="text-2xl font-black text-gray-900 dark:text-white">{(tour.revenue || 0).toLocaleString('vi-VN')}₫</p>
               </div>
             </div>
-            <div className="bg-white p-6 rounded-[24px] border border-gray-100 shadow-sm space-y-4">
-              <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
+            <div className="bg-white dark:bg-gray-900 p-6 rounded-[24px] border border-gray-100 dark:border-gray-800 shadow-sm space-y-4 transition-colors">
+              <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center">
                 <Users className="w-5 h-5" />
               </div>
               <div>
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Số chỗ đã đặt</p>
-                <p className="text-2xl font-black text-gray-900">{tour.totalBooked} <span className="text-sm text-gray-400 font-bold">/ {tour.capacity}</span></p>
+                <p className="text-2xl font-black text-gray-900 dark:text-white">0 <span className="text-sm text-gray-400 font-bold">/ {tour.max_participants}</span></p>
               </div>
             </div>
-            <div className="bg-white p-6 rounded-[24px] border border-gray-100 shadow-sm space-y-4">
-              <div className="w-10 h-10 bg-yellow-50 text-yellow-600 rounded-xl flex items-center justify-center">
+            <div className="bg-white dark:bg-gray-900 p-6 rounded-[24px] border border-gray-100 dark:border-gray-800 shadow-sm space-y-4 transition-colors">
+              <div className="w-10 h-10 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400 rounded-xl flex items-center justify-center">
                 <Star className="w-5 h-5 fill-current" />
               </div>
               <div>
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Đánh giá</p>
-                <p className="text-2xl font-black text-gray-900">{tour.rating} <span className="text-sm text-gray-400 font-bold">({tour.reviews})</span></p>
+                <p className="text-2xl font-black text-gray-900 dark:text-white">0 <span className="text-sm text-gray-400 font-bold">(0)</span></p>
               </div>
             </div>
           </div>
 
           {/* Participants Table */}
-          <div className="bg-white rounded-[32px] border border-gray-100 shadow-sm overflow-hidden">
-            <div className="p-8 border-b border-gray-50 flex items-center justify-between">
-              <h3 className="text-lg font-black text-gray-900">Danh sách hành khách</h3>
-              <button className="flex items-center gap-2 text-xs font-black text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-xl transition-all">
-                <Download className="w-4 h-4" />
-                Xuất danh sách
-              </button>
+          <div className="bg-white dark:bg-gray-900 rounded-[32px] border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden transition-colors">
+            <div className="p-8 border-b border-gray-50 dark:border-gray-800 flex items-center justify-between">
+              <h3 className="text-lg font-black text-gray-900 dark:text-white">Danh sách hành khách</h3>
+              {participants.length > 0 && (
+                <button className="flex items-center gap-2 text-xs font-black text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-xl transition-all">
+                  <Download className="w-4 h-4" />
+                  Xuất danh sách
+                </button>
+              )}
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left">
-                <thead className="bg-gray-50/50">
+                <thead className="bg-gray-50/50 dark:bg-gray-800/50">
                   <tr>
                     <th className="py-4 px-8 text-[10px] font-black text-gray-400 uppercase tracking-widest">Hành khách</th>
                     <th className="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Chỗ</th>
@@ -133,85 +158,130 @@ export default function AdminTourDetailPage({ params }: { params: Promise<{ id: 
                     <th className="py-4 px-8 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {tour.participants.map((p) => (
-                    <tr key={p.id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="py-5 px-8">
-                        <p className="font-bold text-gray-900">{p.name}</p>
-                        <p className="text-xs text-gray-400">{p.phone}</p>
-                      </td>
-                      <td className="py-5 px-6 text-center font-black text-gray-900">{p.passengers}</td>
-                      <td className="py-5 px-6 font-bold text-gray-900">{p.total.toLocaleString('vi-VN')}₫</td>
-                      <td className="py-5 px-6">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${p.status === 'Đã thanh toán' ? 'bg-green-50 text-green-600' : 'bg-amber-50 text-amber-600'
-                          }`}>
-                          {p.status === 'Đã thanh toán' ? <CheckCircle2 className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
-                          {p.status}
-                        </span>
-                      </td>
-                      <td className="py-5 px-8 text-right">
-                        <button className="p-2 text-gray-400 hover:text-gray-900 transition-colors">
-                          <MoreVertical className="w-4 h-4" />
-                        </button>
-                      </td>
+                <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
+                  {participants.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="py-20 text-center text-gray-500 dark:text-gray-400 font-medium">Chưa có khách hàng đặt tour này</td>
                     </tr>
-                  ))}
+                  ) : (
+                    participants.map((p) => (
+                      <tr key={p.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors">
+                        <td className="py-5 px-8">
+                          <p className="font-bold text-gray-900 dark:text-gray-100">{p.name}</p>
+                          <p className="text-xs text-gray-400">{p.phone}</p>
+                        </td>
+                        <td className="py-5 px-6 text-center font-black text-gray-900 dark:text-gray-100">{p.passengers}</td>
+                        <td className="py-5 px-6 font-bold text-gray-900 dark:text-gray-100">{p.total.toLocaleString('vi-VN')}₫</td>
+                        <td className="py-5 px-6">
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${p.status === 'Đã thanh toán' ? 'bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400' : 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400'
+                            }`}>
+                            {p.status === 'Đã thanh toán' ? <CheckCircle2 className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
+                            {p.status}
+                          </span>
+                        </td>
+                        <td className="py-5 px-8 text-right">
+                          <button className="p-2 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+                            <MoreVertical className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
-            <div className="p-6 bg-gray-50/50 text-center">
+            <div className="p-6 bg-gray-50/50 dark:bg-gray-800/30 text-center">
               <button className="text-sm font-bold text-gray-500 hover:text-blue-600 transition-colors">Xem tất cả đặt chỗ</button>
+            </div>
+          </div>
+
+          {/* Itinerary Section */}
+          <div className="bg-white dark:bg-gray-900 rounded-[32px] border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden transition-colors">
+            <div className="p-8 border-b border-gray-50 dark:border-gray-800">
+              <h3 className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
+                <Clock className="w-5 h-5 text-blue-500" />
+                Lịch trình chi tiết
+              </h3>
+            </div>
+            <div className="p-8">
+              {tour.schedules && tour.schedules.length > 0 ? (
+                <div className="space-y-8 relative before:absolute before:left-[17px] before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-100 dark:before:bg-gray-800">
+                  {tour.schedules.map((item: any, index: number) => (
+                    <div key={index} className="relative pl-12">
+                      <div className="absolute left-0 top-1 w-9 h-9 bg-blue-50 dark:bg-blue-900/30 rounded-full border-4 border-white dark:border-gray-900 flex items-center justify-center z-10 shadow-sm">
+                        <span className="text-[10px] font-black text-blue-600 dark:text-blue-400">D{item.day_number}</span>
+                      </div>
+                      <div className="space-y-2">
+                        <h4 className="font-black text-gray-900 dark:text-gray-100">{item.title}</h4>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed whitespace-pre-wrap">
+                          {item.content}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-10 text-center text-gray-500 dark:text-gray-400 italic">
+                  Chưa có thông tin lịch trình cho tour này.
+                </div>
+              )}
             </div>
           </div>
         </div>
 
         {/* Right Column: Info Details */}
         <div className="space-y-8">
-          <div className="bg-white rounded-[32px] border border-gray-100 shadow-sm overflow-hidden">
+          <div className="bg-white dark:bg-gray-900 rounded-[32px] border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden transition-colors">
             <div className="relative h-56">
-              <Image src={tour.image} alt={tour.name} fill className="object-cover" />
+              {tour.image_url ? (
+                <img src={tour.image_url} alt={tour.name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                  <ImageIcon className="w-12 h-12 text-gray-300" />
+                </div>
+              )}
               <div className="absolute top-4 left-4">
-                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg ${tour.status === 'Còn chỗ' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
+                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg ${tour.status === 'active' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
                   }`}>
-                  {tour.status}
+                  {tour.status === 'active' ? 'Còn chỗ' : 'Tạm ngưng'}
                 </span>
               </div>
             </div>
             <div className="p-8 space-y-6">
-              <h3 className="text-lg font-black text-gray-900">Thông tin cơ bản</h3>
+              <h3 className="text-lg font-black text-gray-900 dark:text-white">Thông tin cơ bản</h3>
               <div className="space-y-4">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center">
+                  <div className="w-10 h-10 bg-gray-50 dark:bg-gray-800 text-gray-400 rounded-xl flex items-center justify-center">
                     <MapPin className="w-5 h-5" />
                   </div>
                   <div>
                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Điểm đến</p>
-                    <p className="text-sm font-black text-gray-900">{tour.destination}</p>
+                    <p className="text-sm font-black text-gray-900 dark:text-white">{tour.destination}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center">
+                  <div className="w-10 h-10 bg-gray-50 dark:bg-gray-800 text-gray-400 rounded-xl flex items-center justify-center">
                     <Calendar className="w-5 h-5" />
                   </div>
                   <div>
                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Ngày khởi hành</p>
-                    <p className="text-sm font-black text-gray-900">{tour.startDate}</p>
+                    <p className="text-sm font-black text-gray-900 dark:text-white">{new Date(tour.start_date).toLocaleDateString('vi-VN')}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center">
+                  <div className="w-10 h-10 bg-gray-50 dark:bg-gray-800 text-gray-400 rounded-xl flex items-center justify-center">
                     <Clock className="w-5 h-5" />
                   </div>
                   <div>
                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Thời gian</p>
-                    <p className="text-sm font-black text-gray-900">3 Ngày 2 Đêm</p>
+                    <p className="text-sm font-black text-gray-900 dark:text-white">{tour.duration}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="pt-6 border-t border-gray-50">
+              <div className="pt-6 border-t border-gray-50 dark:border-gray-800">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Giá niêm yết</p>
-                <p className="text-3xl font-black text-blue-600">{tour.price.toLocaleString('vi-VN')}₫</p>
+                <p className="text-3xl font-black text-blue-600">{Number(tour.price).toLocaleString('vi-VN')}₫</p>
               </div>
             </div>
           </div>

@@ -116,8 +116,8 @@ export default function ToursPage() {
                     <tr key={tour.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors">
                       <td className="py-4 px-6">
                         <div className="relative w-12 h-12 bg-gray-100 rounded-lg overflow-hidden dark:bg-gray-800">
-                          {tour.image ? (
-                            <Image src={tour.image} alt={tour.name} fill className="object-cover" />
+                          {tour.image_url ? (
+                            <img src={tour.image_url} alt={tour.name} className="w-full h-full object-cover" />
                           ) : (
                             <ImageIcon className="w-6 h-6 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-gray-400" />
                           )}
@@ -138,7 +138,7 @@ export default function ToursPage() {
                         </span>
                       </td>
                       <td className="py-4 px-6">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">{tour.duration} ngày</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">{tour.duration}</span>
                       </td>
                       <td className="py-4 px-6">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${

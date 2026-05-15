@@ -97,6 +97,7 @@ CREATE TABLE IF NOT EXISTS tours (
     start_date       DATE,
     end_date         DATE,
     status           VARCHAR(50) DEFAULT 'active',  -- 'active' | 'inactive' | 'completed'
+    image_url        VARCHAR(500),
     created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

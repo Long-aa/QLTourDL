@@ -10,7 +10,9 @@ import {
   Trash2, 
   Eye,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import Link from 'next/link';
 import { CustomerFormModal } from './CustomerFormModal';
@@ -21,16 +23,41 @@ export default function CustomersPage() {
   const [customers, setCustomers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [pagination, setPagination] = useState({
+    total: 0,
+    page: 1,
+    size: 10,
+    pages: 0
+  });
 
   useEffect(() => {
-    fetchCustomers();
-  }, []);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
-  const fetchCustomers = async () => {
+  useEffect(() => {
+    fetchCustomers(1);
+  }, [debouncedSearch]);
+
+  useEffect(() => {
+    fetchCustomers(pagination.page);
+  }, [pagination.page]);
+
+  const fetchCustomers = async (page: number = 1) => {
     try {
       setLoading(true);
-      const data = await customerService.getAll();
-      setCustomers(data);
+      const data = await customerService.getAll(page, pagination.size, debouncedSearch);
+      setCustomers(data.items);
+      setPagination(prev => ({
+        ...prev,
+        total: data.total,
+        page: data.page,
+        pages: data.pages
+      }));
       setError(null);
     } catch (err) {
       console.error('Error fetching customers:', err);
@@ -43,7 +70,7 @@ export default function CustomersPage() {
   const handleDelete = async (id: number) => {
     if (confirm('Bạn có chắc muốn xóa khách hàng này?')) {
       try {
-        await customerService.delete(id);
+        await customerService.deleteCustomer(id);
         setCustomers(customers.filter(c => c.id !== id));
       } catch (err) {
         alert('Có lỗi xảy ra khi xóa khách hàng.');
@@ -73,6 +100,8 @@ export default function CustomersPage() {
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
             <input
               type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Tìm kiếm khách hàng theo tên, email, sđt..."
               className="w-full pl-11 pr-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 text-sm transition-all dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:placeholder-gray-500"
             />
@@ -154,9 +183,47 @@ export default function CustomersPage() {
             </table>
           </div>
         )}
+
+        {/* Pagination Controls */}
+        {!loading && !error && pagination.pages > 1 && (
+          <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Hiển thị <span className="font-medium">{(pagination.page - 1) * pagination.size + 1}</span> đến <span className="font-medium">{Math.min(pagination.page * pagination.size, pagination.total)}</span> trong tổng số <span className="font-medium">{pagination.total}</span> khách hàng
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPagination(p => ({ ...p, page: p.page - 1 }))}
+                disabled={pagination.page === 1}
+                className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-700 dark:hover:bg-gray-800 transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              {[...Array(pagination.pages)].map((_, i) => (
+                <button
+                  key={i + 1}
+                  onClick={() => setPagination(p => ({ ...p, page: i + 1 }))}
+                  className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors ${
+                    pagination.page === i + 1
+                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
+                      : 'text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800'
+                  }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+              <button
+                onClick={() => setPagination(p => ({ ...p, page: p.page + 1 }))}
+                disabled={pagination.page === pagination.pages}
+                className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-700 dark:hover:bg-gray-800 transition-colors"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
-      {isModalOpen && <CustomerFormModal onClose={() => { setIsModalOpen(false); fetchCustomers(); }} />}
+      {isModalOpen && <CustomerFormModal onClose={() => { setIsModalOpen(false); fetchCustomers(pagination.page); }} />}
     </div>
   );
 }

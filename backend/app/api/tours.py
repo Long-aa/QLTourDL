@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from app.core.database import get_db
-from app.models.tour import Tour as TourModel
+from app.models.tour import Tour as TourModel, TourSchedule as TourScheduleModel
 from app.schemas.tour import Tour, TourCreate, TourUpdate
 
 router = APIRouter()
@@ -32,8 +32,19 @@ async def get_tour(tour_id: int, db: Session = Depends(get_db)):
 
 @router.post("/", response_model=Tour)
 async def create_tour(tour_in: TourCreate, db: Session = Depends(get_db)):
-    tour = TourModel(**tour_in.model_dump())
+    tour_data = tour_in.model_dump(exclude={"schedules"})
+    schedules_data = tour_in.schedules or []
+    
+    tour = TourModel(**tour_data)
     db.add(tour)
+    db.commit()
+    db.refresh(tour)
+    
+    # Create schedules
+    for sch in schedules_data:
+        db_sch = TourScheduleModel(**sch.model_dump(), tour_id=tour.id)
+        db.add(db_sch)
+    
     db.commit()
     db.refresh(tour)
     return tour
@@ -45,9 +56,17 @@ async def update_tour(tour_id: int, tour_in: TourUpdate, db: Session = Depends(g
     if not tour:
         raise HTTPException(status_code=404, detail="Tour not found")
     
-    update_data = tour_in.model_dump(exclude_unset=True)
+    update_data = tour_in.model_dump(exclude={"schedules"}, exclude_unset=True)
     for key, value in update_data.items():
         setattr(tour, key, value)
+    
+    # Update schedules if provided
+    if tour_in.schedules is not None:
+        # Simple approach: delete existing and recreate
+        db.query(TourScheduleModel).filter(TourScheduleModel.tour_id == tour_id).delete()
+        for sch in tour_in.schedules:
+            db_sch = TourScheduleModel(**sch.model_dump(), tour_id=tour.id)
+            db.add(db_sch)
     
     db.add(tour)
     db.commit()

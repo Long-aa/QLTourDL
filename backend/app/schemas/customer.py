@@ -24,7 +24,9 @@ class CustomerBase(BaseModel):
     address: Optional[str] = None
 
 class CustomerCreate(CustomerBase):
-    pass
+    full_name: str
+    email: EmailStr
+    password: Optional[str] = "123456" # Default password for new customers
 
 class CustomerUpdate(CustomerBase):
     pass
@@ -36,3 +38,10 @@ class Customer(CustomerBase):
 
     class Config:
         from_attributes = True
+
+class CustomerPagination(BaseModel):
+    items: list[Customer]
+    total: int
+    page: int
+    size: int
+    pages: int

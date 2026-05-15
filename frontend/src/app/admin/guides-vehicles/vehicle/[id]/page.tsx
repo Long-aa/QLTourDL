@@ -240,7 +240,7 @@ export default function VehicleDetailPage({ params }: { params: Promise<{ id: st
                       <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 dark:text-gray-500">Thời gian</p>
                       <div className="relative min-w-[180px]">
                         <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
-                        <select className="w-full pl-11 pr-10 py-3 bg-gray-50/50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-xs font-black text-gray-700 appearance-none cursor-pointer dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 transition-colors">
+                        <select className="w-full pl-11 pr-10 py-3 bg-gray-50/50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-xs font-black text-gray-700 appearance-none cursor-pointer dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300">
                           <option>Tất cả thời gian</option>
                           <option>Tháng này</option>
                           <option>Tháng trước</option>
@@ -334,7 +334,7 @@ export default function VehicleDetailPage({ params }: { params: Promise<{ id: st
                             <th className="py-6 px-10 text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">Hạng mục bảo dưỡng</th>
                             <th className="py-6 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">Ngày thực hiện</th>
                             <th className="py-6 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">Chi phí</th>
-                            <th className="py-6 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right px-10 dark:text-gray-500">Thao tác</th>
+                            <th className="py-6 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right px-10 dark:text-gray-500">Thao tác</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50 dark:divide-gray-800 transition-colors">
@@ -374,7 +374,7 @@ export default function VehicleDetailPage({ params }: { params: Promise<{ id: st
                           <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-600">Hết hạn vào</p>
                           <p className="text-sm font-black text-gray-700 dark:text-gray-300 transition-colors">{doc.expiry}</p>
                         </div>
-                        <button className="p-3 bg-gray-50 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all dark:bg-gray-800 dark:text-gray-500 dark:hover:bg-blue-900/30 dark:hover:text-blue-400 transition-colors"><ChevronRight className="w-5 h-5" /></button>
+                        <button className="p-3 bg-gray-50 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all dark:bg-gray-800 dark:text-gray-500 dark:hover:bg-blue-900/30 dark:hover:text-blue-400"><ChevronRight className="w-5 h-5" /></button>
                       </div>
                     </div>
                   ))}

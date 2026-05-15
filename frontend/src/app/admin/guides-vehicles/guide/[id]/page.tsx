@@ -136,7 +136,7 @@ export default function GuideDetailPage({ params }: { params: Promise<{ id: stri
               <Edit2 className="w-4 h-4" />
               Chỉnh sửa hồ sơ
             </button>
-            <button className="flex items-center justify-center gap-2 px-10 py-4 bg-blue-600 text-white rounded-full font-black text-sm hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/40 active:scale-95 whitespace-nowrap dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors">
+            <button className="flex items-center justify-center gap-2 px-10 py-4 bg-blue-600 text-white rounded-full font-black text-sm hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/40 active:scale-95 whitespace-nowrap dark:bg-blue-500 dark:hover:bg-blue-600">
               <Send className="w-4 h-4" />
               Gửi thông báo
             </button>

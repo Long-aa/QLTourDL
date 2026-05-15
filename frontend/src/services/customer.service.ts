@@ -1,8 +1,8 @@
 import api from './api';
 
 export const customerService = {
-  getAll: async () => {
-    const response = await api.get('customers/');
+  getAll: async (page: number = 1, size: number = 10, q?: string) => {
+    const response = await api.get('customers/', { params: { page, size, q } });
     return response.data;
   },
 

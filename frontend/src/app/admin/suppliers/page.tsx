@@ -51,7 +51,7 @@ export default function SuppliersPage() {
   const handleDelete = async (id: number) => {
     if (confirm('Bạn có chắc muốn xóa nhà cung cấp này?')) {
       try {
-        await supplierService.delete(id);
+        await supplierService.deleteSupplier(id);
         setSuppliers(suppliers.filter(s => s.id !== id));
       } catch (err) {
         alert('Có lỗi xảy ra khi xóa nhà cung cấp.');
