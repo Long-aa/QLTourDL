@@ -9,6 +9,12 @@ class SupplierBase(BaseModel):
     email: Optional[EmailStr] = None
     address: Optional[str] = None
     service_type: Optional[str] = None
+    image_url: Optional[str] = None
+    image_size: Optional[int] = None
+    contract_url: Optional[str] = None
+    contract_size: Optional[int] = None
+    notes: Optional[str] = None
+    status: Optional[str] = "Đang hoạt động"
 
 class SupplierCreate(SupplierBase):
     pass

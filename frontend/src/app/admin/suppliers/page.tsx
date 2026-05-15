@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, Plus, Download, ChevronLeft, ChevronRight, Hotel, Truck, Utensils, Globe, Eye, Edit, Trash2, Loader2, AlertCircle } from 'lucide-react';
+import { Search, Plus, Download, ChevronLeft, ChevronRight, Hotel, Truck, Utensils, Globe, Eye, Edit, Trash2, Loader2, AlertCircle, Sparkles } from 'lucide-react';
 import { SupplierFormModal } from './SupplierFormModal';
 import { supplierService } from '@/services/supplier.service';
 
@@ -32,19 +32,27 @@ export default function SuppliersPage() {
 
   const getServiceIcon = (type: string) => {
     switch (type) {
-      case 'hotel': return Hotel;
-      case 'transport': return Truck;
-      case 'food': return Utensils;
+      case 'hotel':
+      case 'Khách sạn': return Hotel;
+      case 'transport':
+      case 'Vận chuyển': return Truck;
+      case 'food':
+      case 'Ẩm thực': return Utensils;
+      case 'Vé tham quan': return Sparkles;
       default: return Globe;
     }
   };
 
   const getServiceLabel = (type: string) => {
     switch (type) {
-      case 'hotel': return 'Khách sạn';
-      case 'transport': return 'Vận chuyển';
-      case 'food': return 'Ẩm thực';
-      default: return 'Khác';
+      case 'hotel':
+      case 'Khách sạn': return 'Khách sạn';
+      case 'transport':
+      case 'Vận chuyển': return 'Vận chuyển';
+      case 'food':
+      case 'Ẩm thực': return 'Ẩm thực';
+      case 'Vé tham quan': return 'Vé tham quan';
+      default: return type || 'Khác';
     }
   };
 
@@ -109,7 +117,7 @@ export default function SuppliersPage() {
                   <th className="py-4 px-6 text-[11px] font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Loại dịch vụ</th>
                   <th className="py-4 px-6 text-[11px] font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Liên hệ</th>
                   <th className="py-4 px-6 text-[11px] font-bold text-gray-400 uppercase tracking-wider dark:text-gray-500">Địa chỉ</th>
-                  <th className="py-4 px-6 text-[11px] font-bold text-gray-400 uppercase tracking-wider text-right dark:text-gray-500">Hành động</th>
+                  <th className="py-4 px-6 text-[11px] font-bold text-gray-400 uppercase tracking-wider text-right dark:text-gray-500">Thao tác</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -148,12 +156,20 @@ export default function SuppliersPage() {
                           <span className="text-xs text-gray-600 font-medium leading-relaxed dark:text-gray-400">{supplier.address}</span>
                         </td>
                         <td className="py-4 px-6 text-right">
-                          <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Link href={`/admin/suppliers/${supplier.id}`} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                              <Eye className="w-3.5 h-3.5" />
+                          <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Link 
+                              href={`/admin/suppliers/${supplier.id}`} 
+                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors dark:hover:bg-blue-900/20"
+                              title="Xem chi tiết"
+                            >
+                              <Eye className="w-4 h-4" />
                             </Link>
-                            <button onClick={() => handleDelete(supplier.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                              <Trash2 className="w-3.5 h-3.5" />
+                            <button 
+                              onClick={() => handleDelete(supplier.id)} 
+                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors dark:hover:bg-red-900/20"
+                              title="Xóa nhà cung cấp"
+                            >
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
                         </td>

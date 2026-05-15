@@ -13,6 +13,8 @@ class Order(Base):
     total_price = Column(Numeric(10, 2))
     status = Column(String(50), default="pending")
     payment_status = Column(String(50), default="unpaid")
+    payment_method = Column(String(50), nullable=True)
+    notes = Column(String(500), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     

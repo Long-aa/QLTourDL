@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { 
   ChevronLeft, 
@@ -19,22 +19,78 @@ import {
   Download,
   Edit2,
   Package,
-  Info
+  Info,
+  Loader2,
+  Tag,
+  AlertCircle
 } from 'lucide-react';
 import { OrderFormModal } from '../OrderFormModal';
+import { orderService } from '@/services/order.service';
 
 export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id: orderId } = React.use(params);
-  const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
+  const { id: orderId } = use(params);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [order, setOrder] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock current order data for editing
-  const currentOrder = {
-    id: orderId,
-    customer: { name: 'Nguyễn Hoàng Anh' },
-    tour: 'Maldives Cổ Điển - Resort 5 Sao Cố Định',
-    date: '15/11/2023',
-    amount: 131220000
+  useEffect(() => {
+    const fetchOrder = async () => {
+      try {
+        setLoading(true);
+        const data = await orderService.getById(Number(orderId));
+        setOrder(data);
+      } catch (err) {
+        console.error('Error fetching order:', err);
+        setError('Không thể tải thông tin đơn hàng.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (orderId) {
+      fetchOrder();
+    }
+  }, [orderId]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+        <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+        <p className="text-gray-500 font-bold animate-pulse">Đang tải thông tin đơn hàng...</p>
+      </div>
+    );
+  }
+
+  if (error || !order) {
+    return (
+      <div className="bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 p-10 rounded-[2rem] text-center space-y-4">
+        <AlertCircle className="w-12 h-12 text-red-500 mx-auto" />
+        <h3 className="text-xl font-black text-red-900 dark:text-red-400">{error || 'Không tìm thấy đơn hàng'}</h3>
+        <Link href="/admin/orders" className="inline-block px-8 py-3 bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700 transition-all">
+          Quay lại danh sách
+        </Link>
+      </div>
+    );
+  }
+
+  const statusMap: any = {
+    'pending': { label: 'Chờ xử lý', color: 'bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-900/30' },
+    'confirmed': { label: 'Đã xác nhận', color: 'bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-900/30' },
+    'cancelled': { label: 'Đã hủy', color: 'bg-red-50 text-red-600 border-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/30' },
+    'completed': { label: 'Hoàn thành', color: 'bg-green-50 text-green-600 border-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-900/30' }
   };
+
+  const paymentStatusMap: any = {
+    'unpaid': { label: 'Chưa thanh toán', color: 'bg-gray-50 text-gray-600 border-gray-100 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700' },
+    'paid': { label: 'Đã thanh toán', color: 'bg-cyan-50 text-cyan-600 border-cyan-100 dark:bg-cyan-900/20 dark:text-cyan-400 dark:border-cyan-900/30' },
+    'partially_paid': { label: 'Thanh toán một phần', color: 'bg-purple-50 text-purple-600 border-purple-100 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-900/30' }
+  };
+
+  const currentStatus = statusMap[order.status] || statusMap['pending'];
+  const currentPaymentStatus = paymentStatusMap[order.payment_status] || paymentStatusMap['unpaid'];
+  
+  const customerInitials = order.customer?.user?.full_name?.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) || 'KH';
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
@@ -47,15 +103,15 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
         </div>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight dark:text-white">Chi tiết Đơn hàng</h1>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight dark:text-white transition-colors">Chi tiết Đơn hàng #{order.id}</h1>
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold bg-blue-50 text-blue-600 border border-blue-100 uppercase tracking-wider dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-900/30">
+              <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold border uppercase tracking-wider ${currentStatus.color}`}>
                 <CheckCircle2 className="w-3 h-3" />
-                Đã xác nhận
+                {currentStatus.label}
               </span>
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold bg-cyan-50 text-cyan-600 border border-cyan-100 uppercase tracking-wider dark:bg-cyan-900/20 dark:text-cyan-400 dark:border-cyan-900/30">
+              <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold border uppercase tracking-wider ${currentPaymentStatus.color}`}>
                 <CreditCard className="w-3 h-3" />
-                Đã thanh toán
+                {currentPaymentStatus.label}
               </span>
             </div>
           </div>
@@ -90,10 +146,10 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                     <MapPin className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-gray-900 text-sm dark:text-gray-200 transition-colors">Maldives Cổ Điển - Resort 5 Sao Cố Định</h4>
+                    <h4 className="font-bold text-gray-900 text-sm dark:text-gray-200 transition-colors">{order.tour?.name || 'Tour đã bị xóa'}</h4>
                     <div className="flex items-center gap-3 mt-2 text-xs text-gray-500 dark:text-gray-400 transition-colors">
-                      <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> 15/11/2023</span>
-                      <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> 5 Ngày 4 Đêm</span>
+                      <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {order.tour?.start_date ? new Date(order.tour.start_date).toLocaleDateString('vi-VN') : 'Chưa định ngày'}</span>
+                      <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {order.tour?.duration || 'N/A'}</span>
                     </div>
                   </div>
                 </div>
@@ -104,16 +160,16 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 dark:text-gray-500">Khách hàng</p>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold border-2 border-white shadow-md dark:border-gray-800">
-                    HA
+                    {customerInitials}
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
-                      <h4 className="font-bold text-gray-900 text-sm dark:text-gray-200 transition-colors">Nguyễn Hoàng Anh</h4>
-                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 uppercase dark:bg-amber-900/20 dark:text-amber-400">VIP Member</span>
+                      <h4 className="font-bold text-gray-900 text-sm dark:text-gray-200 transition-colors">{order.customer?.user?.full_name || 'Khách vãng lai'}</h4>
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 uppercase dark:bg-blue-900/20 dark:text-blue-400">{order.customer?.rank || 'Silver'} Member</span>
                     </div>
                     <div className="space-y-0.5 mt-1">
-                      <p className="text-xs text-gray-500 flex items-center gap-1.5 dark:text-gray-400 transition-colors"><Mail className="w-3 h-3" /> anh.nguyen@example.com</p>
-                      <p className="text-xs text-gray-500 flex items-center gap-1.5 dark:text-gray-400 transition-colors"><Phone className="w-3 h-3" /> +84 901 234 567</p>
+                      <p className="text-xs text-gray-500 flex items-center gap-1.5 dark:text-gray-400 transition-colors"><Mail className="w-3 h-3" /> {order.customer?.user?.email || 'N/A'}</p>
+                      <p className="text-xs text-gray-500 flex items-center gap-1.5 dark:text-gray-400 transition-colors"><Phone className="w-3 h-3" /> {order.customer?.phone || 'N/A'}</p>
                     </div>
                   </div>
                 </div>
@@ -130,10 +186,10 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
             
             <div className="relative pl-8 space-y-8 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-gray-100 dark:before:bg-gray-800 transition-colors">
               {[
-                { title: 'Khách hàng đặt đơn', desc: 'Qua website LuxeTravel', time: '01/10/2023, 10:24', active: true, done: true },
-                { title: 'Xác nhận lịch trình & dịch vụ', desc: 'Hệ thống tự động xác nhận phòng trống', time: '01/10/2023, 10:26', active: true, done: true },
-                { title: 'Thanh toán thành công', desc: 'Thẻ tín dụng Visa kết thúc bằng 4242', time: '01/10/2023, 10:30', active: true, done: true },
-                { title: 'Hoàn tất chuyến đi', desc: 'Chờ khách hàng trải nghiệm', time: 'Dự kiến 20/11/2023', active: false, done: false },
+                { title: 'Khách hàng đặt đơn', desc: `Đơn hàng được tạo cho khách ${order.customer?.user?.full_name}`, time: new Date(order.created_at).toLocaleString('vi-VN'), active: true, done: true },
+                { title: 'Trạng thái xử lý', desc: `Hiện tại đơn hàng đang ở trạng thái: ${currentStatus.label}`, time: new Date(order.updated_at).toLocaleString('vi-VN'), active: true, done: order.status !== 'pending' },
+                { title: 'Thanh toán', desc: order.payment_status === 'paid' ? 'Đã nhận đủ thanh toán' : 'Đang chờ thanh toán', time: order.payment_status === 'paid' ? new Date(order.updated_at).toLocaleString('vi-VN') : '---', active: order.payment_status === 'paid', done: order.payment_status === 'paid' },
+                { title: 'Ghi chú đơn hàng', desc: order.notes || 'Không có ghi chú đặc biệt', time: '', active: !!order.notes, done: !!order.notes },
               ].map((step, i) => (
                 <div key={i} className="relative">
                   <div className={`absolute -left-[27px] top-1.5 w-6 h-6 rounded-full border-4 border-white shadow-sm flex items-center justify-center z-10 transition-colors dark:border-gray-900 ${
@@ -165,41 +221,34 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
 
             <div className="space-y-4 flex-1">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500 font-medium dark:text-gray-400 transition-colors">Giá gốc Tour (x2 Khách)</span>
-                <span className="text-gray-900 font-bold dark:text-gray-200 transition-colors">120,000,000 VNĐ</span>
+                <span className="text-gray-500 font-medium dark:text-gray-400 transition-colors">Đơn giá (x{order.quantity} Khách)</span>
+                <span className="text-gray-900 font-bold dark:text-gray-200 transition-colors">{order.tour?.price?.toLocaleString('vi-VN')} VNĐ</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500 font-medium dark:text-gray-400 transition-colors">Phụ phí Nâng hạng (Ocean View)</span>
-                <span className="text-gray-900 font-bold dark:text-gray-200 transition-colors">15,000,000 VNĐ</span>
+                <span className="text-gray-500 font-medium dark:text-gray-400 transition-colors">Phụ phí / Dịch vụ thêm</span>
+                <span className="text-gray-900 font-bold dark:text-gray-200 transition-colors">0 VNĐ</span>
               </div>
-              <div className="flex justify-between text-sm text-green-600 bg-green-50/50 p-2 rounded-lg border border-green-100 dark:bg-green-900/10 dark:border-green-900/20 dark:text-green-400 transition-colors">
-                <span className="font-bold flex items-center gap-1.5">
-                  <Trophy className="w-3.5 h-3.5" />
-                  Giảm giá VIP (-10%)
-                </span>
-                <span className="font-bold">-13,500,000 VNĐ</span>
-              </div>
-              <div className="flex justify-between text-sm border-t border-gray-100 pt-4 dark:border-gray-800 transition-colors">
-                <span className="text-gray-500 font-medium dark:text-gray-400">Thuế GTGT (8%)</span>
-                <span className="text-gray-900 font-bold dark:text-gray-200">9,720,000 VNĐ</span>
-              </div>
-
+              
               <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-800 transition-colors">
                 <div className="flex items-center justify-between mb-6">
                   <span className="text-sm font-bold text-gray-500 uppercase tracking-widest dark:text-gray-500">Tổng cộng</span>
-                  <span className="text-2xl font-black text-blue-600 dark:text-blue-400">131,220,000 VNĐ</span>
+                  <span className="text-2xl font-black text-blue-600 dark:text-blue-400">{order.total_price?.toLocaleString('vi-VN')} VNĐ</span>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-100 flex items-center gap-4 relative overflow-hidden group dark:bg-blue-900/10 dark:border-blue-900/30 transition-colors">
                   <div className="absolute top-0 right-0 p-1">
-                    <CheckCircle2 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    {order.payment_status === 'paid' && <CheckCircle2 className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
                   </div>
                   <div className="w-10 h-10 rounded-xl bg-white border border-blue-100 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform dark:bg-gray-800 dark:border-gray-700">
                     <CreditCard className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div>
-                    <h5 className="text-xs font-bold text-gray-900 dark:text-gray-200 transition-colors">Thanh toán qua Thẻ Tín Dụng</h5>
-                    <p className="text-[10px] text-gray-500 font-medium mt-0.5 uppercase tracking-tighter dark:text-gray-500 transition-colors">Visa •••• 4242 • TXN-8891-VSA</p>
+                    <h5 className="text-xs font-bold text-gray-900 dark:text-gray-200 transition-colors uppercase tracking-tight">
+                      {order.payment_method === 'transfer' ? 'Chuyển khoản ngân hàng' : order.payment_method === 'cash' ? 'Tiền mặt' : 'Thẻ tín dụng'}
+                    </h5>
+                    <p className="text-[10px] text-gray-500 font-medium mt-0.5 uppercase tracking-tighter dark:text-gray-500 transition-colors">
+                      {order.payment_status === 'paid' ? 'Giao dịch đã hoàn tất' : 'Đang chờ xử lý thanh toán'}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -227,8 +276,11 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
 
       {isEditModalOpen && (
         <OrderFormModal 
-          order={currentOrder} 
-          onClose={() => setIsEditModalOpen(false)} 
+          order={order} 
+          onClose={() => {
+            setIsEditModalOpen(false);
+            // Optional: Re-fetch or update local state
+          }} 
         />
       )}
     </div>

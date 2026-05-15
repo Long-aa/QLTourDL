@@ -51,6 +51,38 @@ async def update_supplier(supplier_id: int, supplier_in: SupplierUpdate, db: Ses
     return supplier
 
 
+from app.models.tour import Tour as TourModel
+from app.models.order import Order as OrderModel
+from app.models.customer import Customer as CustomerModel
+
+@router.get("/{supplier_id}/bookings")
+async def get_supplier_bookings(supplier_id: int, db: Session = Depends(get_db)):
+    # Find all tours by this supplier
+    tours = db.query(TourModel).filter(TourModel.supplier_id == supplier_id).all()
+    tour_ids = [tour.id for tour in tours]
+    
+    if not tour_ids:
+        return []
+        
+    # Find all orders for these tours
+    bookings = db.query(OrderModel).filter(OrderModel.tour_id.in_(tour_ids)).all()
+    
+    # Enrich with customer name and tour name
+    result = []
+    for booking in bookings:
+        customer = db.query(CustomerModel).filter(CustomerModel.id == booking.customer_id).first()
+        tour = db.query(TourModel).filter(TourModel.id == booking.tour_id).first()
+        result.append({
+            "id": f"#B-{booking.id:04d}",
+            "customer": customer.full_name if customer else "N/A",
+            "date": booking.order_date.strftime("%d/%m/%Y") if booking.order_date else "N/A",
+            "amount": f"{booking.total_amount:,.0f}đ" if booking.total_amount else "0đ",
+            "status": booking.status,
+            "tour_name": tour.name if tour else "N/A"
+        })
+    
+    return result
+
 @router.delete("/{supplier_id}")
 async def delete_supplier(supplier_id: int, db: Session = Depends(get_db)):
     supplier = db.query(SupplierModel).filter(SupplierModel.id == supplier_id).first()

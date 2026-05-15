@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   Clock, 
   Eye,
+  Trash2,
   Loader2,
   AlertCircle
 } from 'lucide-react';
@@ -49,6 +50,21 @@ export default function GuidesVehiclesPage() {
       setError('Không thể tải dữ liệu.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: number, type: 'guide' | 'vehicle') => {
+    if (confirm(`Bạn có chắc muốn xóa ${type === 'guide' ? 'hướng dẫn viên' : 'phương tiện'} này?`)) {
+      try {
+        if (type === 'guide') {
+          await guideVehicleService.deleteGuide(id);
+        } else {
+          await guideVehicleService.deleteVehicle(id);
+        }
+        fetchData();
+      } catch (err) {
+        alert('Có lỗi xảy ra khi xóa.');
+      }
     }
   };
 
@@ -102,7 +118,7 @@ export default function GuidesVehiclesPage() {
                 <tr className="border-b border-gray-100 bg-gray-50/50 dark:border-gray-800 dark:bg-gray-800/30">
                   {activeTab === 'guides' ? (
                     <>
-                      <th className="py-4 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-wider dark:text-gray-400">ID</th>
+                      <th className="py-4 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-wider dark:text-gray-400">Hướng dẫn viên</th>
                       <th className="py-4 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-wider dark:text-gray-400">Số thẻ HDV</th>
                       <th className="py-4 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-wider dark:text-gray-400">Ngôn ngữ</th>
                       <th className="py-4 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-wider dark:text-gray-400">Đánh giá</th>
@@ -115,7 +131,7 @@ export default function GuidesVehiclesPage() {
                       <th className="py-4 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-wider text-center dark:text-gray-400">Trạng thái</th>
                     </>
                   )}
-                  <th className="py-4 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-wider text-right dark:text-gray-400">Hành động</th>
+                  <th className="py-4 px-6 text-[10px] font-bold text-gray-400 uppercase tracking-wider text-right dark:text-gray-400">Thao tác</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -124,14 +140,41 @@ export default function GuidesVehiclesPage() {
                     <tr><td colSpan={5} className="py-10 text-center text-gray-500">Không có dữ liệu</td></tr>
                   ) : guides.map((guide) => (
                     <tr key={guide.id} className="group hover:bg-blue-50/30 dark:hover:bg-blue-900/10 transition-colors">
-                      <td className="py-4 px-6 font-medium text-gray-900 dark:text-gray-200">{guide.id}</td>
+                      <td className="py-4 px-6">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden border-2 border-white dark:border-gray-800 dark:bg-gray-800 relative">
+                            {guide.image_url ? (
+                              <img src={guide.image_url} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <UserCheck className="w-5 h-5 absolute inset-0 m-auto text-gray-400" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-bold text-gray-900 dark:text-gray-100 text-sm">{guide.full_name || 'N/A'}</p>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">ID: {guide.id}</p>
+                          </div>
+                        </div>
+                      </td>
                       <td className="py-4 px-6 font-medium text-gray-900 dark:text-gray-200">{guide.license_number}</td>
                       <td className="py-4 px-6 text-sm text-gray-600 dark:text-gray-400">{guide.languages?.join(', ') || 'N/A'}</td>
                       <td className="py-4 px-6 text-sm text-gray-600 dark:text-gray-400">{guide.rating} / 5.0</td>
                       <td className="py-4 px-6 text-right">
-                        <Link href={`/admin/guides-vehicles/guide/${guide.id}`} className="p-2 text-gray-400 hover:text-blue-600 rounded-lg">
-                          <Eye className="w-3.5 h-3.5" />
-                        </Link>
+                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Link 
+                            href={`/admin/guides-vehicles/guide/${guide.id}`} 
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors dark:hover:bg-blue-900/20"
+                            title="Xem chi tiết"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Link>
+                          <button 
+                            onClick={() => handleDelete(guide.id, 'guide')} 
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors dark:hover:bg-red-900/20"
+                            title="Xóa hướng dẫn viên"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -149,9 +192,22 @@ export default function GuidesVehiclesPage() {
                         </span>
                       </td>
                       <td className="py-4 px-6 text-right">
-                        <Link href={`/admin/guides-vehicles/vehicle/${vehicle.id}`} className="p-2 text-gray-400 hover:text-blue-600 rounded-lg">
-                          <Eye className="w-3.5 h-3.5" />
-                        </Link>
+                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Link 
+                            href={`/admin/guides-vehicles/vehicle/${vehicle.id}`} 
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors dark:hover:bg-blue-900/20"
+                            title="Xem chi tiết"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Link>
+                          <button 
+                            onClick={() => handleDelete(vehicle.id, 'vehicle')} 
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors dark:hover:bg-red-900/20"
+                            title="Xóa phương tiện"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

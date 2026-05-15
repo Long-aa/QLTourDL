@@ -10,6 +10,8 @@ class OrderBase(BaseModel):
     total_price: Optional[Decimal] = None
     status: Optional[str] = "pending"
     payment_status: Optional[str] = "unpaid"
+    payment_method: Optional[str] = None
+    notes: Optional[str] = None
 
 class OrderCreate(OrderBase):
     pass

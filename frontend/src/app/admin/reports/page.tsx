@@ -12,8 +12,6 @@ import {
   PieChart, 
   Pie, 
   Cell,
-  LineChart,
-  Line,
   AreaChart,
   Area
 } from 'recharts';
@@ -25,41 +23,92 @@ import {
   ShoppingBag, 
   Users, 
   PieChart as PieChartIcon,
-  Filter,
   RefreshCw,
-  MoreVertical
+  MoreVertical,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
-
-const REVENUE_DATA = [
-  { name: 'Thg 1', value: 45000 },
-  { name: 'Thg 2', value: 52000 },
-  { name: 'Thg 3', value: 48000 },
-  { name: 'Thg 4', value: 61000 },
-  { name: 'Thg 5', value: 55000 },
-  { name: 'Thg 6', value: 67000 },
-  { name: 'Thg 7', value: 72000 },
-];
-
-const TOUR_TYPE_DATA = [
-  { name: 'Nghỉ dưỡng', value: 45, color: '#2563eb' },
-  { name: 'Khám phá', value: 35, color: '#3b82f6' },
-  { name: 'Mạo hiểm', value: 20, color: '#93c5fd' },
-];
-
-const ORDERS_DATA = [
-  { name: 'Thg 1', total: 120 },
-  { name: 'Thg 2', total: 145 },
-  { name: 'Thg 3', total: 132 },
-  { name: 'Thg 4', total: 168 },
-  { name: 'Thg 5', total: 154 },
-  { name: 'Thg 6', total: 189 },
-  { name: 'Thg 7', total: 210 },
-];
-
 import { ReportDownloadModal } from './ReportDownloadModal';
+import { reportService } from '@/services/report.service';
 
 export default function ReportsPage() {
   const [isDownloadModalOpen, setIsDownloadModalOpen] = React.useState(false);
+  const [dateRange, setDateRange] = React.useState({ start: '', end: '' });
+  const [selectedCategory, setSelectedCategory] = React.useState('');
+  const [downloading, setDownloading] = React.useState(false);
+  const [stats, setStats] = React.useState<any>(null);
+  const [revenueData, setRevenueData] = React.useState<any[]>([]);
+  const [categoryData, setCategoryData] = React.useState<any[]>([]);
+  const [ordersData, setOrdersData] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    fetchReports();
+  }, []);
+
+  const fetchReports = async (filters: any = {}) => {
+    try {
+      setLoading(true);
+      const [statsRes, revenueRes, categoryRes, ordersRes] = await Promise.all([
+        reportService.getDashboardStats(filters),
+        reportService.getRevenueChart(filters),
+        reportService.getCategoryDistribution(filters),
+        reportService.getOrdersChart(filters)
+      ]);
+      
+      setStats(statsRes);
+      setRevenueData(revenueRes);
+      setCategoryData(categoryRes);
+      setOrdersData(ordersRes);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching reports:', err);
+      setError('Không thể tải dữ liệu báo cáo.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApplyFilters = () => {
+    fetchReports({
+      start_date: dateRange.start,
+      end_date: dateRange.end,
+      category: selectedCategory
+    });
+  };
+
+  const handleReset = () => {
+    setDateRange({ start: '', end: '' });
+    setSelectedCategory('');
+    fetchReports();
+  };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-40 gap-4">
+        <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+        <p className="text-gray-500 font-bold uppercase tracking-widest text-xs">Đang xử lý dữ liệu hệ thống...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-40 gap-4 text-red-500">
+        <AlertCircle className="w-12 h-12" />
+        <p className="font-bold">{error}</p>
+        <button onClick={fetchReports} className="px-6 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold shadow-lg">Thử lại</button>
+      </div>
+    );
+  }
+
+  const summaryCards = [
+    { ...stats?.revenue, icon: DollarSign, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-900/20', up: true },
+    { ...stats?.orders, icon: ShoppingBag, color: 'text-cyan-600 dark:text-cyan-400', bg: 'bg-cyan-50 dark:bg-cyan-900/20', up: true },
+    { ...stats?.customers, icon: Users, color: 'text-blue-700 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-900/20', up: true },
+    { ...stats?.fill_rate, icon: PieChartIcon, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-900/20', up: true },
+  ];
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -70,7 +119,10 @@ export default function ReportsPage() {
           <p className="text-gray-400 text-sm mt-1 font-bold uppercase tracking-widest dark:text-gray-500">Phân tích dữ liệu vận hành & doanh thu</p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="p-3 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-2xl transition-all border border-gray-100 bg-white shadow-sm active:scale-95 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700 dark:hover:text-blue-400">
+          <button 
+            onClick={() => fetchReports()}
+            className="p-3 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-2xl transition-all border border-gray-100 bg-white shadow-sm active:scale-95 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700 dark:hover:text-blue-400"
+          >
             <RefreshCw className="w-5 h-5" />
           </button>
           <button 
@@ -95,46 +147,50 @@ export default function ReportsPage() {
             <div className="relative group">
               <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors dark:text-gray-600 dark:group-hover:text-blue-400" />
               <input
-                type="text"
-                placeholder="Từ ngày - Đến ngày"
-                className="pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 text-sm transition-all w-60 bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:placeholder-gray-600"
+                type="date"
+                value={dateRange.start}
+                onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+                className="pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 text-sm transition-all w-44 bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:placeholder-gray-600"
               />
             </div>
-            <div className="flex p-1 bg-gray-100 rounded-xl border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
-              <button className="px-4 py-1.5 text-xs font-bold text-gray-500 hover:text-blue-600 rounded-lg transition-all dark:text-gray-400 dark:hover:text-blue-400">7 ngày</button>
-              <button className="px-4 py-1.5 text-xs font-bold bg-white text-blue-600 rounded-lg shadow-sm dark:bg-gray-700 dark:text-blue-400">30 ngày</button>
-              <button className="px-4 py-1.5 text-xs font-bold text-gray-500 hover:text-blue-600 rounded-lg transition-all dark:text-gray-400 dark:hover:text-blue-400">1 năm</button>
+            <div className="relative group">
+              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors dark:text-gray-600 dark:group-hover:text-blue-400" />
+              <input
+                type="date"
+                value={dateRange.end}
+                onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+                className="pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 text-sm transition-all w-44 bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:placeholder-gray-600"
+              />
             </div>
           </div>
         </div>
 
         <div className="space-y-2 flex-1 min-w-[200px]">
-          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1 dark:text-gray-500">TOUR</label>
+          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1 dark:text-gray-500">LOẠI TOUR</label>
           <div className="relative">
-            <select className="w-full pl-4 pr-10 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 text-sm transition-all bg-white cursor-pointer appearance-none dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300">
-              <option value="">Tất cả tour</option>
-              <option value="maldives">Maldives Resort</option>
-              <option value="swiss">Swiss Alps</option>
-              <option value="kyoto">Kyoto Cherry</option>
+            <select 
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="w-full pl-4 pr-10 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 text-sm transition-all bg-white cursor-pointer appearance-none dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300"
+            >
+              <option value="">Tất cả loại tour</option>
+              <option value="Nghỉ dưỡng">Nghỉ dưỡng</option>
+              <option value="Khám phá">Khám phá</option>
+              <option value="Mạo hiểm">Mạo hiểm</option>
             </select>
             <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none dark:text-gray-600" />
           </div>
         </div>
 
         <div className="flex items-center gap-2 pb-0.5">
-          <button className="px-6 py-2.5 text-sm font-bold text-gray-500 hover:text-gray-900 transition-all dark:text-gray-500 dark:hover:text-gray-300">Reset</button>
-          <button className="px-8 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 active:scale-95">Áp dụng</button>
+          <button onClick={handleReset} className="px-6 py-2.5 text-sm font-bold text-gray-500 hover:text-gray-900 transition-all dark:text-gray-500 dark:hover:text-gray-300">Reset</button>
+          <button onClick={handleApplyFilters} className="px-8 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 active:scale-95">Áp dụng</button>
         </div>
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: 'DOANH THU', value: '$128,430', change: '+12.5%', icon: DollarSign, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-900/20', up: true },
-          { label: 'SỐ ĐƠN HÀNG', value: '156', change: '+5.2%', icon: ShoppingBag, color: 'text-cyan-600 dark:text-cyan-400', bg: 'bg-cyan-50 dark:bg-cyan-900/20', up: true },
-          { label: 'SỐ KHÁCH HÀNG', value: '2,450', change: '+8.1%', icon: Users, color: 'text-blue-700 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-900/20', up: true },
-          { label: 'TỶ LỆ LẤP ĐẦY', value: '84%', change: '+2.4%', icon: PieChartIcon, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-900/20', up: true },
-        ].map((stat, i) => (
+        {summaryCards.map((stat, i) => (
           <div key={i} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 dark:bg-gray-900 dark:border-gray-800">
             <div className="flex items-center justify-between relative z-10">
               <div className={`p-2.5 rounded-xl ${stat.bg} ${stat.color}`}>
@@ -145,7 +201,12 @@ export default function ReportsPage() {
               </span>
             </div>
             <p className="text-[10px] font-bold text-gray-400 mt-4 tracking-widest dark:text-gray-500">{stat.label}</p>
-            <h3 className="text-2xl font-black text-gray-900 mt-1 dark:text-white transition-colors">{stat.value}</h3>
+            <h3 className="text-2xl font-black text-gray-900 mt-1 dark:text-white transition-colors">
+               {typeof stat.value === 'number' && stat.label.includes('DOANH THU') 
+                ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(stat.value)
+                : stat.value
+              }
+            </h3>
             <div className="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity dark:opacity-[0.02] dark:group-hover:opacity-[0.05]">
               <stat.icon className="w-24 h-24 dark:text-white" />
             </div>
@@ -168,7 +229,7 @@ export default function ReportsPage() {
           </div>
           <div className="h-80 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={REVENUE_DATA}>
+              <BarChart data={revenueData}>
                 <defs>
                   <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#2563eb" stopOpacity={0.8}/>
@@ -191,7 +252,7 @@ export default function ReportsPage() {
                   axisLine={false} 
                   tickLine={false} 
                   tick={{ fontSize: 11, fontWeight: 600, fill: '#94a3b8' }} 
-                  tickFormatter={(val) => `$${val/1000}k`}
+                  tickFormatter={(val) => `${val/1000000}M`}
                 />
                 <Tooltip 
                   cursor={{ fill: '#f8fafc' }}
@@ -225,7 +286,7 @@ export default function ReportsPage() {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={TOUR_TYPE_DATA}
+                  data={categoryData}
                   cx="50%"
                   cy="50%"
                   innerRadius={65}
@@ -233,7 +294,7 @@ export default function ReportsPage() {
                   paddingAngle={8}
                   dataKey="value"
                 >
-                  {TOUR_TYPE_DATA.map((entry, index) => (
+                  {categoryData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
                   ))}
                 </Pie>
@@ -249,7 +310,7 @@ export default function ReportsPage() {
             </div>
           </div>
           <div className="mt-8 space-y-3">
-            {TOUR_TYPE_DATA.map((item, i) => (
+            {categoryData.map((item, i) => (
               <div key={i} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }}></div>
@@ -274,7 +335,7 @@ export default function ReportsPage() {
           </div>
           <div className="h-60 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={ORDERS_DATA}>
+              <AreaChart data={ordersData}>
                 <defs>
                   <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#2563eb" stopOpacity={0.1}/>

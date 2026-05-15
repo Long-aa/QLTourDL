@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { 
@@ -16,39 +16,62 @@ import {
   MessageSquare,
   ShieldCheck,
   Briefcase,
-  Star
+  Star,
+  Loader2
 } from 'lucide-react';
 import { CustomerFormModal } from '../CustomerFormModal';
+import { customerService } from '@/services/customer.service';
 
 export default function CustomerDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = React.use(params);
+  const { id } = use(params);
   const [activeTab, setActiveTab] = useState('info');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [customer, setCustomer] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock customer data
-  const customer = {
-    id: 'CUST-001',
-    name: 'Nguyễn Văn A',
-    email: 'nguyen.vana@example.com',
-    phone: '+84 987 654 321',
-    gender: 'Nam',
-    birthday: '15/08/1985',
-    address: '123 Đường Lê Lợi, Quận 1, TP. Hồ Chí Minh, Việt Nam',
-    type: 'Doanh nghiệp',
-    assignee: 'Trần Thị B',
-    internalNote: 'Khách hàng khó tính, ưu tiên phòng view biển tầng cao. Thường xuyên book tour resort 5 sao.',
-    isVip: true,
-    status: 'Đang hoạt động',
-    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=200'
-  };
+  useEffect(() => {
+    const fetchCustomer = async () => {
+      try {
+        setLoading(true);
+        const data = await customerService.getCustomerById(Number(id));
+        setCustomer(data);
+      } catch (err) {
+        console.error('Error fetching customer:', err);
+        setError('Không thể tải thông tin khách hàng.');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const bookingHistory = [
-    { id: 'BK-001', tourName: 'Khám phá Sapa Mùa Lúa Chín 3N2Đ', date: '10/09/2023', amount: 7000000, passengers: 2, status: 'Hoàn thành' },
-    { id: 'BK-045', tourName: 'Nghỉ Dưỡng Resort 5 Sao Đà Nẵng', date: '22/10/2023', amount: 17800000, passengers: 2, status: 'Sắp diễn ra' },
-    { id: 'BK-089', tourName: 'Tour Đảo Ngọc Phú Quốc Lặn Ngắm San Hô', date: '05/11/2023', amount: 5200000, passengers: 1, status: 'Chờ thanh toán' },
-    { id: 'BK-012', tourName: 'Du Thuyền 5 Sao Vịnh Hạ Long 2N1Đ', date: '15/08/2023', amount: 9600000, passengers: 2, status: 'Hoàn thành' },
-    { id: 'BK-005', tourName: 'Hành trình di sản Miền Trung 4N3Đ', date: '12/07/2023', amount: 4500000, passengers: 1, status: 'Đã hủy' },
-  ];
+    if (id) {
+      fetchCustomer();
+    }
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+        <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+        <p className="text-gray-500 font-bold animate-pulse">Đang tải dữ liệu khách hàng...</p>
+      </div>
+    );
+  }
+
+  if (error || !customer) {
+    return (
+      <div className="bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 p-10 rounded-[2rem] text-center space-y-4">
+        <Info className="w-12 h-12 text-red-500 mx-auto" />
+        <h3 className="text-xl font-black text-red-900 dark:text-red-400">{error || 'Không tìm thấy khách hàng'}</h3>
+        <Link href="/admin/customers" className="inline-block px-8 py-3 bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700 transition-all">
+          Quay lại danh sách
+        </Link>
+      </div>
+    );
+  }
+
+  const isVip = customer.rank === 'Gold' || customer.rank === 'Platinum' || customer.rank === 'Diamond';
+  const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(customer.user?.full_name || 'Guest')}&background=random&size=200&bold=true`;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
@@ -66,25 +89,25 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
         <div className="relative flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="flex flex-col md:flex-row items-center gap-8">
             <div className="relative">
-              <div className="w-32 h-32 rounded-[32px] overflow-hidden border-4 border-white shadow-2xl dark:border-gray-800">
-                <Image src={customer.avatar} alt={customer.name} fill className="object-cover" />
+              <div className="w-32 h-32 rounded-[32px] overflow-hidden border-4 border-white shadow-2xl dark:border-gray-800 relative">
+                <Image src={avatarUrl} alt={customer.user?.full_name || 'Guest'} fill className="object-cover" />
               </div>
               <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 border-4 border-white rounded-full dark:border-gray-900"></div>
             </div>
             
             <div className="text-center md:text-left space-y-2">
               <div className="flex items-center justify-center md:justify-start gap-3">
-                <h1 className="text-4xl font-black text-gray-900 tracking-tight dark:text-white transition-colors">{customer.name}</h1>
-                {customer.isVip && (
+                <h1 className="text-4xl font-black text-gray-900 tracking-tight dark:text-white transition-colors">{customer.user?.full_name}</h1>
+                {isVip && (
                   <span className="flex items-center gap-1.5 px-3 py-1 bg-yellow-400 text-[10px] font-black text-white uppercase tracking-widest rounded-full shadow-lg shadow-yellow-400/20">
-                    <Star className="w-3 h-3 fill-current" /> VIP
+                    <Star className="w-3 h-3 fill-current" /> {customer.rank}
                   </span>
                 )}
               </div>
               <div className="flex flex-col gap-2 text-gray-500 font-bold dark:text-gray-400 transition-colors">
                 <div className="flex items-center justify-center md:justify-start gap-2">
                   <Mail className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-                  <span className="text-sm">{customer.email}</span>
+                  <span className="text-sm">{customer.user?.email}</span>
                 </div>
                 <div className="flex items-center justify-center md:justify-start gap-2">
                   <Phone className="w-4 h-4 text-blue-500 dark:text-blue-400" />
@@ -144,7 +167,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
             <div className="space-y-6">
               <div className="space-y-1">
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">HỌ TÊN</p>
-                <p className="text-lg font-black text-gray-900 dark:text-white transition-colors">{customer.name}</p>
+                <p className="text-lg font-black text-gray-900 dark:text-white transition-colors">{customer.user?.full_name}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">GIỚI TÍNH</p>
@@ -152,7 +175,9 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
               </div>
               <div className="space-y-1">
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">NGÀY SINH</p>
-                <p className="text-lg font-black text-gray-900 dark:text-white transition-colors">{customer.birthday}</p>
+                <p className="text-lg font-black text-gray-900 dark:text-white transition-colors">
+                  {customer.birthday ? new Date(customer.birthday).toLocaleDateString('vi-VN') : 'Chưa cập nhật'}
+                </p>
               </div>
             </div>
           </div>
@@ -166,7 +191,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
             <div className="space-y-6">
               <div className="space-y-1">
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">EMAIL CHÍNH</p>
-                <p className="text-lg font-black text-gray-900 dark:text-white transition-colors">{customer.email}</p>
+                <p className="text-lg font-black text-gray-900 dark:text-white transition-colors">{customer.user?.email}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">SỐ ĐIỆN THOẠI</p>
@@ -174,7 +199,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
               </div>
               <div className="space-y-1">
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">ĐỊA CHỈ</p>
-                <p className="text-sm font-bold text-gray-900 leading-relaxed dark:text-gray-200 transition-colors">{customer.address}</p>
+                <p className="text-sm font-bold text-gray-900 leading-relaxed dark:text-gray-200 transition-colors">{customer.address || 'Chưa cập nhật'}</p>
               </div>
             </div>
           </div>
@@ -191,16 +216,20 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                 <span className="inline-block px-4 py-1.5 bg-blue-50 text-blue-600 rounded-full text-xs font-black dark:bg-blue-900/30 dark:text-blue-400">{customer.type}</span>
               </div>
               <div className="space-y-1">
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">NGƯỜI PHỤ TRÁCH</p>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">HẠNG THÀNH VIÊN</p>
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-[10px] text-white font-bold">TB</div>
-                  <p className="text-lg font-black text-gray-900 dark:text-white transition-colors">{customer.assignee}</p>
+                  <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center text-[10px] text-white font-bold">
+                    {customer.rank?.charAt(0)}
+                  </div>
+                  <p className="text-lg font-black text-gray-900 dark:text-white transition-colors">{customer.rank}</p>
                 </div>
               </div>
               <div className="space-y-1">
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">GHI CHÚ NỘI BỘ</p>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">GHI CHÚ HỆ THỐNG</p>
                 <div className="p-4 bg-gray-50 rounded-2xl dark:bg-gray-800 transition-colors">
-                  <p className="text-xs font-bold text-gray-500 leading-relaxed italic dark:text-gray-400 transition-colors">"{customer.internalNote}"</p>
+                  <p className="text-xs font-bold text-gray-500 leading-relaxed italic dark:text-gray-400 transition-colors">
+                    Khách hàng đăng ký vào {new Date(customer.created_at).toLocaleDateString('vi-VN')}
+                  </p>
                 </div>
               </div>
             </div>
@@ -226,27 +255,32 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
-                {bookingHistory.map((booking) => (
+                {customer.orders && customer.orders.length > 0 ? customer.orders.map((booking: any) => (
                   <tr key={booking.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors group">
                     <td className="py-6 px-10">
-                      <p className="font-black text-gray-900 group-hover:text-blue-600 transition-colors cursor-pointer dark:text-gray-200 dark:group-hover:text-blue-400">{booking.tourName}</p>
+                      <p className="font-black text-gray-900 group-hover:text-blue-600 transition-colors cursor-pointer dark:text-gray-200 dark:group-hover:text-blue-400">Tour #{booking.tour_id}</p>
                       <p className="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-wider dark:text-gray-500">#{booking.id}</p>
                     </td>
-                    <td className="py-6 px-6 font-bold text-gray-600 text-sm dark:text-gray-400">{booking.date}</td>
-                    <td className="py-6 px-6 font-black text-gray-900 dark:text-gray-200">{booking.passengers}</td>
-                    <td className="py-6 px-6 font-black text-blue-600 dark:text-blue-400">{booking.amount.toLocaleString('vi-VN')}₫</td>
+                    <td className="py-6 px-6 font-bold text-gray-600 text-sm dark:text-gray-400">{new Date(booking.created_at).toLocaleDateString('vi-VN')}</td>
+                    <td className="py-6 px-6 font-black text-gray-900 dark:text-gray-200">{booking.quantity}</td>
+                    <td className="py-6 px-6 font-black text-blue-600 dark:text-blue-400">{booking.total_price?.toLocaleString('vi-VN')}₫</td>
                     <td className="py-6 px-10">
                       <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                        booking.status === 'Hoàn thành' ? 'bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400' :
-                        booking.status === 'Sắp diễn ra' ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' :
-                        booking.status === 'Chờ thanh toán' ? 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400' :
-                        'bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400'
+                        booking.status === 'completed' ? 'bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400' :
+                        booking.status === 'pending' ? 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400' :
+                        'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400'
                       }`}>
-                        {booking.status}
+                        {booking.status === 'completed' ? 'Hoàn thành' : booking.status === 'pending' ? 'Chờ xử lý' : 'Đang xử lý'}
                       </span>
                     </td>
                   </tr>
-                ))}
+                )) : (
+                  <tr>
+                    <td colSpan={5} className="py-20 text-center text-gray-400 font-bold">
+                      Chưa có lịch sử đặt tour
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

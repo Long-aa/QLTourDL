@@ -7,5 +7,6 @@ from .supplier import Supplier
 from .vehicle import Vehicle
 from .tour_guide import TourGuide
 from .upload import Upload
+from .review import Review
 
-__all__ = ["User", "Tour", "Customer", "Order", "Employee", "Supplier", "Vehicle", "TourGuide", "Upload"]
+__all__ = ["User", "Tour", "Customer", "Order", "Employee", "Supplier", "Vehicle", "TourGuide", "Upload", "Review"]

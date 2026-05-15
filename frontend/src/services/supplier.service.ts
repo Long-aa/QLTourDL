@@ -25,4 +25,9 @@ export const supplierService = {
     const response = await api.delete(`suppliers/${id}`);
     return response.data;
   },
+
+  getBookings: async (id: number) => {
+    const response = await api.get(`suppliers/${id}/bookings`);
+    return response.data;
+  },
 };

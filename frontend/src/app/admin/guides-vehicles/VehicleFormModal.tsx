@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
-import { X, Save, Bus, Hash, Users, Palette, Calendar, Fuel, Activity, Wind, Power } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, Save, Bus, Hash, Users, Palette, Calendar, Fuel, Activity, Wind, Power, Loader2 } from 'lucide-react';
+import { guideVehicleService } from '@/services/guide-vehicle.service';
 
 interface VehicleFormModalProps {
   vehicle?: any;
@@ -10,6 +11,32 @@ interface VehicleFormModalProps {
 
 export function VehicleFormModal({ vehicle, onClose }: VehicleFormModalProps) {
   const isEdit = !!vehicle;
+  const [loading, setLoading] = useState(false);
+
+  const [formData, setFormData] = useState({
+    plate_number: vehicle?.plate_number || '',
+    type: vehicle?.type || '',
+    capacity: vehicle?.capacity || 0,
+    status: vehicle?.status || 'available'
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      if (isEdit) {
+        await guideVehicleService.updateVehicle(vehicle.id, formData);
+      } else {
+        await guideVehicleService.createVehicle(formData);
+      }
+      onClose();
+    } catch (error) {
+      console.error('Save error:', error);
+      alert('Có lỗi xảy ra khi lưu thông tin phương tiện.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#1e3a8a]/20 backdrop-blur-md animate-in fade-in duration-300 p-4">
@@ -34,15 +61,17 @@ export function VehicleFormModal({ vehicle, onClose }: VehicleFormModalProps) {
 
         {/* Body */}
         <div className="p-10 space-y-8 max-h-[70vh] overflow-y-auto custom-scrollbar dark:bg-gray-900 transition-colors">
-          <div className="grid grid-cols-2 gap-8">
+          <form id="vehicle-form" onSubmit={handleSubmit} className="grid grid-cols-2 gap-8">
             <div className="col-span-2 md:col-span-1">
-              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Tên phương tiện</label>
+              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Loại xe</label>
               <div className="relative group">
                 <Bus className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-600 transition-colors dark:text-gray-600 dark:group-focus-within:text-blue-400" />
                 <input 
                   type="text" 
-                  defaultValue={vehicle?.name}
-                  placeholder="Ví dụ: Limousine Dcar XPlus" 
+                  required
+                  value={formData.type}
+                  onChange={(e) => setFormData({...formData, type: e.target.value})}
+                  placeholder="Ví dụ: Limousine, Xe 45 chỗ..." 
                   className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-[20px] focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white outline-none transition-all text-sm font-bold text-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:focus:bg-gray-800/50 dark:focus:border-blue-500 dark:placeholder-gray-600" 
                 />
               </div>
@@ -54,60 +83,25 @@ export function VehicleFormModal({ vehicle, onClose }: VehicleFormModalProps) {
                 <Hash className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-600 transition-colors dark:text-gray-600 dark:group-focus-within:text-blue-400" />
                 <input 
                   type="text" 
-                  defaultValue={vehicle?.plate}
+                  required
+                  value={formData.plate_number}
+                  onChange={(e) => setFormData({...formData, plate_number: e.target.value})}
                   placeholder="29B-123.45" 
                   className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-[20px] focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white outline-none transition-all text-sm font-bold text-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:focus:bg-gray-800/50 dark:focus:border-blue-500 dark:placeholder-gray-600" 
                 />
               </div>
             </div>
 
-            <div className="col-span-1">
+            <div className="col-span-2">
               <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Sức chứa (Hành khách)</label>
               <div className="relative group">
                 <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-600 transition-colors dark:text-gray-600 dark:group-focus-within:text-blue-400" />
                 <input 
-                  type="text" 
-                  defaultValue={vehicle?.capacity}
-                  placeholder="09 Chỗ" 
-                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-[20px] focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white outline-none transition-all text-sm font-bold text-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:focus:bg-gray-800/50 dark:focus:border-blue-500 dark:placeholder-gray-600" 
-                />
-              </div>
-            </div>
-
-            <div className="col-span-1">
-              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Màu sắc</label>
-              <div className="relative group">
-                <Palette className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-600 transition-colors dark:text-gray-600 dark:group-focus-within:text-blue-400" />
-                <input 
-                  type="text" 
-                  defaultValue={vehicle?.specs?.color}
-                  placeholder="Đen Sapphire" 
-                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-[20px] focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white outline-none transition-all text-sm font-bold text-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:focus:bg-gray-800/50 dark:focus:border-blue-500 dark:placeholder-gray-600" 
-                />
-              </div>
-            </div>
-
-            <div className="col-span-1">
-              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Năm sản xuất</label>
-              <div className="relative group">
-                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-600 transition-colors dark:text-gray-600 dark:group-focus-within:text-blue-400" />
-                <input 
-                  type="text" 
-                  defaultValue={vehicle?.specs?.year}
-                  placeholder="2023" 
-                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-[20px] focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white outline-none transition-all text-sm font-bold text-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:focus:bg-gray-800/50 dark:focus:border-blue-500 dark:placeholder-gray-600" 
-                />
-              </div>
-            </div>
-
-            <div className="col-span-1">
-              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 dark:text-gray-500">Loại nhiên liệu</label>
-              <div className="relative group">
-                <Fuel className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-600 transition-colors dark:text-gray-600 dark:group-focus-within:text-blue-400" />
-                <input 
-                  type="text" 
-                  defaultValue={vehicle?.specs?.fuel}
-                  placeholder="Diesel / Xăng" 
+                  type="number" 
+                  required
+                  value={formData.capacity}
+                  onChange={(e) => setFormData({...formData, capacity: parseInt(e.target.value)})}
+                  placeholder="09" 
                   className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-[20px] focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white outline-none transition-all text-sm font-bold text-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:focus:bg-gray-800/50 dark:focus:border-blue-500 dark:placeholder-gray-600" 
                 />
               </div>
@@ -124,11 +118,16 @@ export function VehicleFormModal({ vehicle, onClose }: VehicleFormModalProps) {
                 </div>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" className="sr-only peer" defaultChecked={vehicle?.status === 'Sẵn sàng'} />
+                <input 
+                  type="checkbox" 
+                  className="sr-only peer" 
+                  checked={formData.status === 'available'} 
+                  onChange={(e) => setFormData({...formData, status: e.target.checked ? 'available' : 'maintenance'})}
+                />
                 <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-blue-600"></div>
               </label>
             </div>
-          </div>
+          </form>
         </div>
 
         {/* Footer */}
@@ -139,9 +138,14 @@ export function VehicleFormModal({ vehicle, onClose }: VehicleFormModalProps) {
           >
             Hủy bỏ
           </button>
-          <button className="px-10 py-4 bg-[#1e3a8a] text-white rounded-full font-black text-sm hover:bg-blue-900 transition-all shadow-xl shadow-blue-900/20 flex items-center gap-2 active:scale-95 dark:bg-blue-600 dark:hover:bg-blue-700">
-            <Save className="w-4 h-4" />
-            Lưu cấu hình
+          <button 
+            type="submit"
+            form="vehicle-form"
+            disabled={loading}
+            className="px-10 py-4 bg-[#1e3a8a] text-white rounded-full font-black text-sm hover:bg-blue-900 transition-all shadow-xl shadow-blue-900/20 flex items-center gap-2 active:scale-95 dark:bg-blue-600 dark:hover:bg-blue-700 disabled:opacity-50"
+          >
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            {isEdit ? 'Lưu cấu hình' : 'Thêm mới'}
           </button>
         </div>
       </div>

@@ -16,6 +16,7 @@ class Tour(Base):
     start_date = Column(Date)
     end_date = Column(Date)
     status = Column(String(50), default="active")
+    category = Column(String(100), default="Nghỉ dưỡng")
     image_url = Column(String(500))
     image_size = Column(Integer)
     

@@ -7,6 +7,7 @@ export const metadata: Metadata = {
 };
 
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
+import { Toaster } from 'react-hot-toast';
 
 export default function RootLayout({
   children,
@@ -22,6 +23,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <Toaster position="top-center" reverseOrder={false} />
           {children}
         </ThemeProvider>
       </body>

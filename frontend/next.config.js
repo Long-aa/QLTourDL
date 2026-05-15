@@ -15,6 +15,14 @@ const nextConfig = {
         hostname: 'localhost',
         port: '8001',
       },
+      {
+        protocol: 'https',
+        hostname: 'ui-avatars.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'yyjeugsyleqwidecmgyz.supabase.co',
+      },
     ],
   },
   async rewrites() {

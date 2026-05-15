@@ -10,11 +10,14 @@ import {
   Phone, 
   Users,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Eye,
+  Trash2
 } from 'lucide-react';
 import Link from 'next/link';
 import { EmployeeFormModal } from './EmployeeFormModal';
 import { employeeService } from '@/services/employee.service';
+import { toast } from 'react-hot-toast';
 
 export default function EmployeesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -114,9 +117,26 @@ export default function EmployeesPage() {
                         <span className="text-sm text-gray-500 font-medium dark:text-gray-400">{emp.hire_date || 'N/A'}</span>
                       </td>
                       <td className="py-4 px-6 text-right">
-                        <button className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors dark:hover:bg-gray-800 dark:hover:text-gray-200">
-                          <MoreHorizontal className="w-5 h-5" />
-                        </button>
+                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Link 
+                            href={`/admin/employees/${emp.id}`}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors dark:hover:bg-blue-900/20"
+                            title="Xem chi tiết"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Link>
+                          <button 
+                            onClick={() => {
+                              if (window.confirm(`Bạn có chắc chắn muốn xóa nhân viên ${emp.user?.full_name}?`)) {
+                                handleDeleteEmployee(emp.id);
+                              }
+                            }}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors dark:hover:bg-red-900/20"
+                            title="Xóa nhân viên"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -127,7 +147,25 @@ export default function EmployeesPage() {
         )}
       </div>
 
-      {isModalOpen && <EmployeeFormModal onClose={() => { setIsModalOpen(false); fetchEmployees(); }} />}
+      {isModalOpen && (
+        <EmployeeFormModal 
+          onClose={(refresh) => { 
+            setIsModalOpen(false); 
+            if (refresh) fetchEmployees(); 
+          }} 
+        />
+      )}
     </div>
   );
+
+  async function handleDeleteEmployee(id: number) {
+    try {
+      await employeeService.deleteEmployee(id);
+      setEmployees(prev => prev.filter(e => e.id !== id));
+      toast.success('Xóa nhân viên thành công');
+    } catch (error: any) {
+      console.error('Error deleting employee:', error);
+      toast.error('Lỗi khi xóa nhân viên');
+    }
+  }
 }

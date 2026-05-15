@@ -1,20 +1,20 @@
-import api from './api';
+import apiClient from './api';
 
-const reportApi = {
-  getDashboardStats: async () => {
-    const response = await api.get('reports/dashboard-stats');
+export const reportService = {
+  getDashboardStats: async (params: any = {}) => {
+    const response = await apiClient.get('reports/dashboard-stats', { params });
     return response.data;
   },
-
-  getRevenueReport: async (params?: { start_date?: string; end_date?: string }) => {
-    const response = await api.get('reports/revenue', { params });
+  getRevenueChart: async (params: any = {}) => {
+    const response = await apiClient.get('reports/charts/revenue', { params });
     return response.data;
   },
-
-  getTourReport: async () => {
-    const response = await api.get('reports/tours');
+  getOrdersChart: async (params: any = {}) => {
+    const response = await apiClient.get('reports/charts/orders', { params });
     return response.data;
   },
+  getCategoryDistribution: async (params: any = {}) => {
+    const response = await apiClient.get('reports/charts/categories', { params });
+    return response.data;
+  }
 };
-
-export const reportService = reportApi;

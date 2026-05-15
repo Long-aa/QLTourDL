@@ -119,7 +119,7 @@ export default function CustomersPage() {
           <div className="flex flex-col items-center justify-center py-20 gap-3 text-red-500">
             <AlertCircle className="w-10 h-10" />
             <p>{error}</p>
-            <button onClick={fetchCustomers} className="text-blue-600 hover:underline">Thử lại</button>
+            <button onClick={() => fetchCustomers()} className="text-blue-600 hover:underline">Thử lại</button>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -166,13 +166,21 @@ export default function CustomersPage() {
                       <td className="py-4 px-6">
                         <span className="text-sm text-gray-600 dark:text-gray-400">{customer.address || 'N/A'}</span>
                       </td>
-                      <td className="py-4 px-6 text-right">
-                        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Link href={`/admin/customers/${customer.id}`} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                            <Eye className="w-3.5 h-3.5" />
+                       <td className="py-4 px-6 text-right">
+                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Link 
+                            href={`/admin/customers/${customer.id}`} 
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors dark:hover:bg-blue-900/20"
+                            title="Xem chi tiết"
+                          >
+                            <Eye className="w-4 h-4" />
                           </Link>
-                          <button onClick={() => handleDelete(customer.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                            <Trash2 className="w-3.5 h-3.5" />
+                          <button 
+                            onClick={() => handleDelete(customer.id)} 
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors dark:hover:bg-red-900/20"
+                            title="Xóa khách hàng"
+                          >
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </td>

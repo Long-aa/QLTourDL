@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { 
   ChevronLeft, 
@@ -18,63 +18,69 @@ import {
   FileText,
   Megaphone,
   ArrowRight,
-  Filter
+  Filter,
+  Loader2,
+  AlertCircle,
+  ExternalLink,
+  Download,
+  Info
 } from 'lucide-react';
 import { SupplierFormModal } from '../SupplierFormModal';
+import { supplierService } from '@/services/supplier.service';
+import Image from 'next/image';
 
 export default function SupplierDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = React.use(params);
+  const { id: supplierId } = use(params);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [supplier, setSupplier] = useState<any>(null);
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock supplier data
-  const supplier = {
-    id: 'SUP-001',
-    name: 'Amanoi Resort',
-    type: 'Nghỉ dưỡng',
-    contact: {
-      representative: 'Nguyễn Văn A',
-      role: 'Giám đốc Kinh doanh',
-      email: 'amanoi.reservations@aman.com',
-      phone: '+84 259 3770 777',
-      website: 'aman.com/resorts/amanoi'
-    },
-    address: 'Vịnh Vĩnh Hy, Ninh Thuận, Việt Nam',
-    status: 'Đang hoạt động',
-    heroImage: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&q=80&w=2000'
-  };
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [supplierData, bookingsData] = await Promise.all([
+          supplierService.getSupplierById(Number(supplierId)),
+          supplierService.getBookings(Number(supplierId))
+        ]);
+        setSupplier(supplierData);
+        setBookings(bookingsData);
+      } catch (err) {
+        console.error('Error fetching supplier data:', err);
+        setError('Không thể tải thông tin nhà cung cấp.');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const contracts = [
-    { 
-      id: 1, 
-      title: 'HĐ Phân phối 2024', 
-      type: 'ĐANG HIỆU LỰC', 
-      details: 'Hoa hồng: 15% | Thanh toán 30 ngày', 
-      expiry: '31/12/2024',
-      icon: FileText,
-      iconBg: 'bg-blue-50',
-      iconColor: 'text-blue-600',
-      typeBg: 'bg-blue-50',
-      typeColor: 'text-blue-600'
-    },
-    { 
-      id: 2, 
-      title: 'Gói Mùa Hè Độc Quyền', 
-      type: 'KHUYẾN MÃI', 
-      details: 'Giảm 20% cho biệt thự biển', 
-      expiry: '30/08/2024',
-      icon: Megaphone,
-      iconBg: 'bg-orange-50',
-      iconColor: 'text-orange-600',
-      typeBg: 'bg-teal-50',
-      typeColor: 'text-teal-600'
+    if (supplierId) {
+      fetchData();
     }
-  ];
+  }, [supplierId]);
 
-  const bookings = [
-    { id: '#B-8902', customer: 'Trần Văn B.', date: '15/10/2024', amount: '$4,500', status: 'Đã xác nhận' },
-    { id: '#B-8875', customer: 'Lê Thị C.', date: '02/11/2024', amount: '$8,200', status: 'Chờ xử lý' },
-    { id: '#B-8810', customer: 'Hoàng Văn D.', date: '20/09/2024', amount: '$3,100', status: 'Hoàn thành' },
-  ];
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4 dark:bg-gray-950">
+        <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+        <p className="text-gray-500 font-black animate-pulse uppercase tracking-widest text-xs">Đang tải hồ sơ nhà cung cấp...</p>
+      </div>
+    );
+  }
+
+  if (error || !supplier) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen gap-6 dark:bg-gray-950 p-10">
+        <AlertCircle className="w-20 h-20 text-red-500" />
+        <h2 className="text-3xl font-black text-gray-900 dark:text-white">{error || 'Không tìm thấy nhà cung cấp'}</h2>
+        <Link href="/admin/suppliers" className="px-10 py-4 bg-blue-600 text-white rounded-full font-black text-sm hover:bg-blue-700 shadow-xl shadow-blue-600/30">
+          Quay lại danh sách
+        </Link>
+      </div>
+    );
+  }
+
 
   return (
     <div className="min-h-screen bg-[#f8fafc] dark:bg-gray-950 pb-20 animate-in fade-in duration-500 transition-colors">
@@ -97,22 +103,32 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
 
       <div className="max-w-7xl mx-auto px-8 mt-8 space-y-8">
         {/* Hero Section */}
-        <div className="relative h-[400px] rounded-[48px] overflow-hidden shadow-2xl shadow-blue-900/10 group">
-          <img 
-            src={supplier.heroImage} 
-            alt={supplier.name}
-            className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
-          />
+        <div className="relative h-[500px] rounded-[48px] overflow-hidden shadow-2xl shadow-blue-900/10 group bg-gray-100 dark:bg-gray-800">
+          {supplier.image_url ? (
+            <Image 
+              src={supplier.image_url} 
+              alt={supplier.name}
+              fill
+              className="object-cover transition-transform duration-1000 group-hover:scale-105"
+            />
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center text-gray-300 gap-4">
+              <Palmtree className="w-20 h-20" />
+              <span className="font-black uppercase tracking-widest text-xs">Chưa có ảnh poster</span>
+            </div>
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
           
           <div className="absolute bottom-12 left-12 right-12 flex items-end justify-between">
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <span className="px-4 py-1.5 bg-blue-600 text-white text-[10px] font-black rounded-full tracking-widest uppercase shadow-lg shadow-blue-600/40">
+                <span className={`px-4 py-1.5 text-white text-[10px] font-black rounded-full tracking-widest uppercase shadow-lg ${
+                  supplier.status === 'Đang hoạt động' ? 'bg-green-600 shadow-green-600/40' : 'bg-red-600 shadow-red-600/40'
+                }`}>
                   {supplier.status}
                 </span>
                 <span className="px-4 py-1.5 bg-white/20 backdrop-blur-md text-white text-[10px] font-black rounded-full tracking-widest uppercase border border-white/20">
-                  {supplier.type}
+                  {supplier.service_type}
                 </span>
               </div>
               <h2 className="text-6xl font-black text-white tracking-tighter drop-shadow-2xl">
@@ -144,8 +160,8 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                   </div>
                   <div className="space-y-1">
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">NGƯỜI ĐẠI DIỆN</p>
-                    <p className="text-lg font-black text-gray-900 dark:text-white transition-colors">{supplier.contact.representative}</p>
-                    <p className="text-xs font-bold text-gray-500 dark:text-gray-400 transition-colors">{supplier.contact.role}</p>
+                    <p className="text-lg font-black text-gray-900 dark:text-white transition-colors">{supplier.contact_person || 'N/A'}</p>
+                    <p className="text-xs font-bold text-gray-500 dark:text-gray-400 transition-colors">Đại diện pháp luật</p>
                   </div>
                 </div>
 
@@ -155,7 +171,7 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                   </div>
                   <div className="space-y-1">
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">ĐIỆN THOẠI</p>
-                    <p className="text-lg font-black text-gray-900 dark:text-white transition-colors">{supplier.contact.phone}</p>
+                    <p className="text-lg font-black text-gray-900 dark:text-white transition-colors">{supplier.phone || 'N/A'}</p>
                   </div>
                 </div>
 
@@ -165,76 +181,59 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                   </div>
                   <div className="space-y-1">
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">EMAIL</p>
-                    <p className="text-sm font-black text-gray-900 break-all dark:text-white transition-colors">{supplier.contact.email}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-5 group">
-                  <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 rounded-2xl flex items-center justify-center text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform shadow-sm">
-                    <Globe className="w-6 h-6" />
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">WEBSITE</p>
-                    <p className="text-sm font-black text-blue-600 hover:underline cursor-pointer dark:text-blue-400">{supplier.contact.website}</p>
+                    <p className="text-sm font-black text-gray-900 break-all dark:text-white transition-colors">{supplier.email || 'N/A'}</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Services Card */}
-            <div className="bg-white rounded-[40px] p-10 shadow-xl shadow-blue-900/5 border border-gray-100 space-y-8 dark:bg-gray-900 dark:border-gray-800 dark:shadow-none transition-colors">
-              <h3 className="text-2xl font-black text-[#1e3a8a] dark:text-blue-400 tracking-tight">Dịch vụ cung cấp</h3>
-              <div className="flex flex-wrap gap-3">
-                {[
-                  { label: 'Biệt thự cao cấp', icon: Palmtree },
-                  { label: 'Spa & Wellness', icon: Sparkles },
-                  { label: 'Ẩm thực tinh tế', icon: Utensils },
-                  { label: 'Du thuyền', icon: Sailboat }
-                ].map((tag, i) => (
-                  <span key={i} className="flex items-center gap-2.5 px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-xs font-black text-gray-700 hover:bg-blue-50 hover:border-blue-100 transition-all cursor-default dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-blue-900/20 dark:hover:border-blue-900/30">
-                    <tag.icon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                    {tag.label}
-                  </span>
-                ))}
-              </div>
-            </div>
           </div>
 
           {/* Right Column: Content */}
           <div className="col-span-12 lg:col-span-8 space-y-8">
-            {/* Contracts Section */}
             <div className="space-y-6">
               <div className="flex items-center justify-between px-2">
-                <h3 className="text-2xl font-black text-[#1e3a8a] dark:text-blue-400 tracking-tight transition-colors">Hợp đồng hiện tại</h3>
-                <Link href="#" className="flex items-center gap-1 text-xs font-black text-blue-600 hover:underline uppercase tracking-widest dark:text-blue-400">
-                  Xem tất cả <ArrowRight className="w-4 h-4" />
-                </Link>
+                <h3 className="text-2xl font-black text-[#1e3a8a] dark:text-blue-400 tracking-tight transition-colors">Hợp đồng & Ghi chú</h3>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {contracts.map((contract) => (
-                  <div key={contract.id} className="bg-white rounded-[32px] p-8 shadow-xl shadow-blue-900/5 border border-gray-100 group hover:border-blue-200 transition-all dark:bg-gray-900 dark:border-gray-800 dark:shadow-none dark:hover:border-blue-500/50">
-                    <div className="flex items-start justify-between mb-6">
-                      <div className={`w-14 h-14 ${contract.iconBg} dark:bg-blue-900/20 rounded-[20px] flex items-center justify-center ${contract.iconColor} dark:text-blue-400 group-hover:scale-110 transition-transform`}>
-                        <contract.icon className="w-7 h-7" />
-                      </div>
-                      <span className={`px-4 py-1.5 ${contract.typeBg} dark:bg-blue-900/30 ${contract.typeColor} dark:text-blue-400 text-[9px] font-black rounded-full tracking-widest uppercase transition-colors`}>
-                        {contract.type}
-                      </span>
-                    </div>
-                    <div className="space-y-1 mb-6">
-                      <h4 className="text-xl font-black text-gray-900 dark:text-white transition-colors">{contract.title}</h4>
-                      <p className="text-xs font-bold text-gray-500 dark:text-gray-400 transition-colors">{contract.details}</p>
-                    </div>
-                    <div className="flex items-center justify-between pt-6 border-t border-gray-50 dark:border-gray-800 transition-colors">
-                      <div className="space-y-1">
-                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">HẾT HẠN</p>
-                        <p className="text-sm font-black text-gray-900 dark:text-white transition-colors">{contract.expiry}</p>
-                      </div>
-                      <button className="text-xs font-black text-blue-600 hover:bg-blue-50 px-5 py-2 rounded-xl transition-all dark:text-blue-400 dark:hover:bg-blue-900/30">Chi tiết</button>
-                    </div>
+              
+              <div className="bg-white rounded-[40px] p-10 shadow-xl shadow-blue-900/5 border border-gray-100 dark:bg-gray-900 dark:border-gray-800 transition-colors">
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="w-12 h-12 bg-amber-50 dark:bg-amber-900/20 rounded-2xl flex items-center justify-center text-amber-600 dark:text-amber-400">
+                    <Info className="w-6 h-6" />
                   </div>
-                ))}
+                  <h4 className="text-xl font-black text-gray-900 dark:text-white">Ghi chú dịch vụ</h4>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-medium">
+                  {supplier.notes || 'Chưa có ghi chú dịch vụ cho nhà cung cấp này.'}
+                </p>
               </div>
+
+              {supplier.contract_url && (
+                <div className="bg-white rounded-[40px] p-10 shadow-xl shadow-blue-900/5 border border-gray-100 dark:bg-gray-900 dark:border-gray-800 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-5">
+                      <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/20 rounded-[2rem] flex items-center justify-center text-blue-600 dark:text-blue-400 shadow-inner">
+                        <FileText className="w-8 h-8" />
+                      </div>
+                      <div>
+                        <h4 className="text-xl font-black text-gray-900 dark:text-white transition-colors">Bản scan Hợp đồng</h4>
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1 dark:text-gray-500">
+                          Kích thước: {(supplier.contract_size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                    </div>
+                    <a 
+                      href={supplier.contract_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-8 py-4 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/30 active:scale-95"
+                    >
+                      <Download className="w-4 h-4" />
+                      Tải về / Xem
+                    </a>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* History Table */}
@@ -251,29 +250,37 @@ export default function SupplierDetailPage({ params }: { params: Promise<{ id: s
                     <tr className="border-y border-gray-50 dark:border-gray-800 transition-colors">
                       <th className="py-5 px-10 text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">MÃ ĐT</th>
                       <th className="py-5 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">KHÁCH HÀNG</th>
-                      <th className="py-5 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">NGÀY ĐẾN</th>
+                      <th className="py-5 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">TOUR</th>
+                      <th className="py-5 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">NGÀY ĐẶT</th>
                       <th className="py-5 px-6 text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">TỔNG TIỀN</th>
                       <th className="py-5 px-10 text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">TRẠNG THÁI</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50 dark:divide-gray-800 transition-colors">
-                    {bookings.map((booking, i) => (
-                      <tr key={i} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors group">
-                        <td className="py-6 px-10 text-sm font-black text-blue-600 cursor-pointer hover:underline dark:text-blue-400">{booking.id}</td>
-                        <td className="py-6 px-6 text-sm font-bold text-gray-700 dark:text-gray-300 transition-colors">{booking.customer}</td>
-                        <td className="py-6 px-6 text-sm font-bold text-gray-500 dark:text-gray-400 transition-colors">{booking.date}</td>
-                        <td className="py-6 px-6 text-sm font-black text-gray-900 dark:text-white transition-colors">{booking.amount}</td>
-                        <td className="py-6 px-10">
-                          <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-colors ${
-                            booking.status === 'Đã xác nhận' ? 'bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400' :
-                            booking.status === 'Chờ xử lý' ? 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400' :
-                            'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
-                          }`}>
-                            {booking.status}
-                          </span>
-                        </td>
+                    {bookings.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="py-20 text-center text-gray-400 font-bold italic">Chưa có lịch sử đặt phòng nào liên quan đến nhà cung cấp này.</td>
                       </tr>
-                    ))}
+                    ) : (
+                      bookings.map((booking, i) => (
+                        <tr key={i} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors group">
+                          <td className="py-6 px-10 text-sm font-black text-blue-600 cursor-pointer hover:underline dark:text-blue-400">{booking.id}</td>
+                          <td className="py-6 px-6 text-sm font-bold text-gray-700 dark:text-gray-300 transition-colors">{booking.customer}</td>
+                          <td className="py-6 px-6 text-sm font-bold text-gray-900 dark:text-white transition-colors">{booking.tour_name}</td>
+                          <td className="py-6 px-6 text-sm font-bold text-gray-500 dark:text-gray-400 transition-colors">{booking.date}</td>
+                          <td className="py-6 px-6 text-sm font-black text-gray-900 dark:text-white transition-colors">{booking.amount}</td>
+                          <td className="py-6 px-10">
+                            <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-colors ${
+                              booking.status === 'confirmed' || booking.status === 'Đã xác nhận' ? 'bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400' :
+                              booking.status === 'pending' || booking.status === 'Chờ xử lý' ? 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400' :
+                              'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
+                            }`}>
+                              {booking.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>

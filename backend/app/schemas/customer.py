@@ -36,10 +36,22 @@ class CustomerUpdate(CustomerBase):
     full_name: Optional[str] = None
     email: Optional[EmailStr] = None
 
+class OrderShort(BaseModel):
+    id: int
+    tour_id: Optional[int] = None
+    quantity: int
+    total_price: Optional[float] = None
+    status: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
 class Customer(CustomerBase):
     id: int
     created_at: datetime
     user: Optional[User] = None
+    orders: list[OrderShort] = []
 
     class Config:
         from_attributes = True
