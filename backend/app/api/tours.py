@@ -65,7 +65,9 @@ async def update_tour(tour_id: int, tour_in: TourUpdate, db: Session = Depends(g
         # Simple approach: delete existing and recreate
         db.query(TourScheduleModel).filter(TourScheduleModel.tour_id == tour_id).delete()
         for sch in tour_in.schedules:
-            db_sch = TourScheduleModel(**sch.model_dump(), tour_id=tour.id)
+            # Exclude id to avoid conflicts when recreating
+            sch_data = sch.model_dump(exclude={"id"})
+            db_sch = TourScheduleModel(**sch_data, tour_id=tour.id)
             db.add(db_sch)
     
     db.add(tour)

@@ -70,7 +70,11 @@ async def create_customer(customer_in: CustomerCreate, db: Session = Depends(get
     customer = CustomerModel(
         user_id=user.id,
         phone=customer_in.phone,
-        address=customer_in.address
+        address=customer_in.address,
+        birthday=customer_in.birthday,
+        gender=customer_in.gender,
+        type=customer_in.type,
+        rank=customer_in.rank
     )
     db.add(customer)
     db.commit()
@@ -84,9 +88,23 @@ async def update_customer(customer_id: int, customer_in: CustomerUpdate, db: Ses
     if not customer:
         raise HTTPException(status_code=404, detail="Customer not found")
     
+    # Update customer fields
     update_data = customer_in.model_dump(exclude_unset=True)
-    for key, value in update_data.items():
+    
+    # Separate user fields from customer fields
+    user_fields = ['full_name', 'email']
+    customer_data = {k: v for k, v in update_data.items() if k not in user_fields}
+    user_data = {k: v for k, v in update_data.items() if k in user_fields}
+    
+    # Update customer
+    for key, value in customer_data.items():
         setattr(customer, key, value)
+    
+    # Update user if needed
+    if user_data and customer.user:
+        for key, value in user_data.items():
+            setattr(customer.user, key, value)
+        db.add(customer.user)
     
     db.add(customer)
     db.commit()
@@ -99,6 +117,13 @@ async def delete_customer(customer_id: int, db: Session = Depends(get_db)):
     customer = db.query(CustomerModel).filter(CustomerModel.id == customer_id).first()
     if not customer:
         raise HTTPException(status_code=404, detail="Customer not found")
+    
+    user = customer.user
     db.delete(customer)
+    
+    # Also delete the associated user if it exists
+    if user:
+        db.delete(user)
+        
     db.commit()
-    return {"message": f"Customer {customer_id} deleted"}
+    return {"message": f"Customer {customer_id} and associated user deleted"}

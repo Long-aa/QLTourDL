@@ -6,5 +6,6 @@ from .employee import Employee
 from .supplier import Supplier
 from .vehicle import Vehicle
 from .tour_guide import TourGuide
+from .upload import Upload
 
-__all__ = ["User", "Tour", "Customer", "Order", "Employee", "Supplier", "Vehicle", "TourGuide"]
+__all__ = ["User", "Tour", "Customer", "Order", "Employee", "Supplier", "Vehicle", "TourGuide", "Upload"]

@@ -22,6 +22,10 @@ class CustomerBase(BaseModel):
     user_id: Optional[int] = None
     phone: Optional[str] = None
     address: Optional[str] = None
+    birthday: Optional[datetime] = None
+    gender: Optional[str] = "Nam"
+    type: Optional[str] = "Cá nhân"
+    rank: Optional[str] = "Silver"
 
 class CustomerCreate(CustomerBase):
     full_name: str
@@ -29,7 +33,8 @@ class CustomerCreate(CustomerBase):
     password: Optional[str] = "123456" # Default password for new customers
 
 class CustomerUpdate(CustomerBase):
-    pass
+    full_name: Optional[str] = None
+    email: Optional[EmailStr] = None
 
 class Customer(CustomerBase):
     id: int

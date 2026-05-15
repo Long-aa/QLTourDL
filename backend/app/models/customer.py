@@ -10,6 +10,10 @@ class Customer(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     phone = Column(String(20))
     address = Column(Text)
+    birthday = Column(DateTime(timezone=True), nullable=True)
+    gender = Column(String(10), default="Nam")
+    type = Column(String(50), default="Cá nhân")
+    rank = Column(String(50), default="Silver")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     user = relationship("User")

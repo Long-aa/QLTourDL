@@ -1,5 +1,5 @@
-import boto3
-from botocore.config import Config
+from supabase import create_client, Client
+from fastapi import HTTPException
 from app.core.config import settings
 import uuid
 import os
@@ -7,69 +7,80 @@ import os
 class StorageService:
     def __init__(self):
         try:
-            self.use_b2 = all([
-                settings.B2_KEY_ID, 
-                settings.B2_APPLICATION_KEY, 
-                settings.B2_BUCKET_NAME,
-                settings.B2_ENDPOINT_URL
-            ])
-            
-            if self.use_b2:
-                self.s3 = boto3.client(
-                    's3',
-                    endpoint_url=settings.B2_ENDPOINT_URL,
-                    aws_access_key_id=settings.B2_KEY_ID,
-                    aws_secret_access_key=settings.B2_APPLICATION_KEY,
-                    config=Config(signature_version='s3v4'),
-                    region_name=settings.B2_REGION_NAME
-                )
-                self.bucket_name = settings.B2_BUCKET_NAME
-                print("StorageService: Using Backblaze B2")
-            else:
-                print("StorageService: B2 credentials missing, using local storage")
+            self.supabase: Client = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
+            self.bucket_name = settings.SUPABASE_STORAGE_BUCKET
+            self._ensure_bucket_exists()
+            print(f"StorageService: Initialized for Supabase bucket {self.bucket_name}")
         except Exception as e:
-            print(f"StorageService: Failed to init B2: {e}. Falling back to local storage.")
-            self.use_b2 = False
+            print(f"StorageService: Failed to init Supabase: {e}")
+            self.supabase = None
 
-        # Ensure local upload directory exists
-        self.local_upload_dir = os.path.join("static", "uploads")
-        os.makedirs(self.local_upload_dir, exist_ok=True)
+    def _ensure_bucket_exists(self):
+        """
+        Checks if the bucket exists by trying to fetch its metadata.
+        """
+        if not self.supabase:
+            return
+
+        try:
+            # Try to get bucket metadata directly
+            self.supabase.storage.get_bucket(self.bucket_name)
+            print(f"StorageService: Verified bucket '{self.bucket_name}' exists.")
+        except Exception as e:
+            # If get_bucket fails, it might not exist or we don't have permission
+            error_msg = str(e)
+            if "not found" in error_msg.lower() or "404" in error_msg:
+                print(f"StorageService: Bucket '{self.bucket_name}' not found. Trying to create...")
+                try:
+                    self.supabase.storage.create_bucket(self.bucket_name, options={"public": True})
+                    print(f"StorageService: Created bucket '{self.bucket_name}' successfully.")
+                except Exception as create_err:
+                    print(f"StorageService: Could not create bucket automatically: {create_err}")
+                    print(f"CRITICAL: Please ensure bucket '{self.bucket_name}' exists in Supabase Dashboard.")
+            else:
+                # Permission error or something else, but we'll assume it exists if we can't verify
+                print(f"StorageService: Bucket existence check bypassed (likely permission issue): {e}")
 
     async def upload_file(self, file_content, filename: str, content_type: str = None) -> dict:
         """
-        Uploads a file to Backblaze B2 or local storage.
+        Uploads a file to Supabase Storage.
         """
         ext = os.path.splitext(filename)[1]
         unique_filename = f"{uuid.uuid4()}{ext}"
         file_size = len(file_content)
+        file_path = f"uploads/{unique_filename}"
 
-        if self.use_b2:
-            try:
-                extra_args = {}
-                if content_type:
-                    extra_args['ContentType'] = content_type
+        try:
+            if not self.supabase:
+                raise Exception("Supabase client not initialized. Check your credentials in .env")
 
-                self.s3.put_object(
-                    Bucket=self.bucket_name,
-                    Key=unique_filename,
-                    Body=file_content,
-                    **extra_args
-                )
-                
-                url = f"{settings.B2_ENDPOINT_URL}/{self.bucket_name}/{unique_filename}"
-                return {"url": url, "size": file_size}
-            except Exception as e:
-                print(f"B2 Upload failed: {e}. Falling back to local.")
-                # Fallthrough to local storage
-
-        # Local Storage Fallback
-        file_path = os.path.join(self.local_upload_dir, unique_filename)
-        with open(file_path, "wb") as f:
-            f.write(file_content)
-        
-        # In a real app, this would be your server's public URL
-        # For local dev, we assume it's served at /static/uploads/
-        url = f"http://localhost:8001/static/uploads/{unique_filename}"
-        return {"url": url, "size": file_size}
+            # Upload to Supabase
+            res = self.supabase.storage.from_(self.bucket_name).upload(
+                path=file_path,
+                file=file_content,
+                file_options={"content-type": content_type} if content_type else None
+            )
+            
+            # Get public URL
+            public_url = self.supabase.storage.from_(self.bucket_name).get_public_url(file_path)
+            
+            return {
+                "url": public_url, 
+                "size": file_size, 
+                "filename": unique_filename,
+                "original_filename": filename
+            }
+        except Exception as e:
+            error_msg = str(e)
+            if "Bucket not found" in error_msg:
+                error_msg = f"Bucket '{self.bucket_name}' not found in Supabase. Please create it in the Supabase Dashboard and set it to Public."
+            
+            print(f"Supabase Upload failed: {error_msg}")
+            import traceback
+            with open("upload_error.log", "a") as f:
+                f.write(f"Supabase Upload error: {error_msg}\n")
+                f.write(traceback.format_exc())
+                f.write("-" * 20 + "\n")
+            raise HTTPException(status_code=500, detail=error_msg)
 
 storage_service = StorageService()

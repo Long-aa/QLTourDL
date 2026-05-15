@@ -49,10 +49,19 @@ export function CustomerFormModal({ onClose, customer }: CustomerFormModalProps)
     e.preventDefault();
     try {
       setLoading(true);
+      
+      // Prepare data for API
+      const apiData = {
+        ...formData,
+        birthday: formData.birthday || null,
+        full_name: formData.full_name.trim(),
+        email: formData.email.trim(),
+      };
+
       if (isEdit) {
-        await customerService.updateCustomer(customer.id, formData);
+        await customerService.updateCustomer(customer.id, apiData);
       } else {
-        await customerService.createCustomer(formData);
+        await customerService.createCustomer(apiData);
       }
       onClose();
     } catch (err) {
@@ -163,13 +172,12 @@ export function CustomerFormModal({ onClose, customer }: CustomerFormModalProps)
                     <div className="relative group">
                       <label className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-[0.2em] mb-2 block ml-1">Ngày sinh</label>
                       <div className="relative">
-                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-blue-500 transition-colors pointer-events-none z-10" />
                         <input
-                          type="text"
-                          value={formData.birthday}
+                          type="date"
+                          value={formData.birthday ? formData.birthday.split('T')[0] : ''}
                           onChange={(e) => setFormData({ ...formData, birthday: e.target.value })}
-                          placeholder="dd/mm/yyyy"
-                          className="w-full pl-12 pr-4 py-4 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 rounded-2xl focus:bg-white dark:focus:bg-gray-800 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-bold text-gray-900 dark:text-white"
+                          className="w-full pl-12 pr-4 py-4 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 rounded-2xl focus:bg-white dark:focus:bg-gray-800 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-bold text-gray-900 dark:text-white appearance-none cursor-pointer"
                         />
                       </div>
                     </div>

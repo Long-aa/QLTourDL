@@ -18,12 +18,10 @@ class Settings(BaseSettings):
     
     BACKEND_CORS_ORIGINS: List[str] = ["http://localhost:3000"]
     
-    # Backblaze B2
-    B2_KEY_ID: str = ""
-    B2_APPLICATION_KEY: str = ""
-    B2_BUCKET_NAME: str = "QLTourDL"
-    B2_ENDPOINT_URL: str = "https://s3.eu-central-003.backblazeb2.com"
-    B2_REGION_NAME: str = "eu-central-003"
+    # Supabase
+    SUPABASE_URL: str = ""
+    SUPABASE_KEY: str = ""
+    SUPABASE_STORAGE_BUCKET: str = "tours"
     
     @property
     def cors_origins(self) -> List[str]:
@@ -31,7 +29,7 @@ class Settings(BaseSettings):
             return json.loads(self.BACKEND_CORS_ORIGINS)
         return self.BACKEND_CORS_ORIGINS
     
-    NEXT_PUBLIC_API_URL: str = "http://localhost:8001/api/v1"
+    NEXT_PUBLIC_API_URL: str = "http://127.0.0.1:8001/api/v1"
     
     class Config:
         env_file = ".env"

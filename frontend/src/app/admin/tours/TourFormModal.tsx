@@ -126,13 +126,18 @@ export function TourFormModal({ onClose, tour }: TourFormModalProps) {
 
       const tourData = {
         ...formData,
-        price: Number(String(formData.price).replace(/[^0-9]/g, '')),
-        max_participants: Number(formData.max_participants),
+        price: formData.price ? Number(String(formData.price).split('.')[0].replace(/[^0-9]/g, '')) : 0,
+        max_participants: Number(formData.max_participants) || 0,
+        guide_id: formData.guide_id ? Number(formData.guide_id) : null,
+        vehicle_id: formData.vehicle_id ? Number(formData.vehicle_id) : null,
+        supplier_id: formData.supplier_id ? Number(formData.supplier_id) : null,
         image_url,
         image_size,
         schedules
       };
 
+      console.log('--- TOUR DATA TO SAVE ---', tourData);
+      
       if (isEdit) {
         await tourService.update(tour.id, tourData);
       } else {
@@ -248,7 +253,7 @@ export function TourFormModal({ onClose, tour }: TourFormModalProps) {
                     value={formData.price}
                     onChange={handleChange}
                     placeholder="5,200,000"
-                    className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm dark:bg-gray-900 dark:text-gray-200 font-bold text-green-600 dark:text-green-400"
+                    className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm dark:bg-gray-900 font-bold text-green-600 dark:text-green-400"
                   />
                 </div>
 
