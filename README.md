@@ -160,3 +160,21 @@ App: http://localhost:3000
 ## 👥 Tác giả
 
 BTL CNPM - QLTourDL
+
+
+1. Chạy Backend:
+
+# Đảm bảo bạn đang ở thư mục backend
+cd C:\BTL_CNPM\QLTourDL\backend
+
+# Cài đặt thư viện
+..\.venv\Scripts\pip.exe install -r requirements.txt
+
+# Chạy file run.py bằng python trong môi trường ảo
+..\.venv\Scripts\python.exe run.py
+
+
+2. Chạy Frontend:
+
+cd frontend
+npm run dev

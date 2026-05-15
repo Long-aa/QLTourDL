@@ -1,36 +1,65 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from app.core.database import get_db
+from app.models.tour import Tour as TourModel
+from app.schemas.tour import Tour, TourCreate, TourUpdate
 
 router = APIRouter()
 
 
-@router.get("/")
+@router.get("/", response_model=List[Tour])
 async def get_tours(
     skip: int = 0,
     limit: int = 100,
     destination: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
-    return {"message": "List of tours", "skip": skip, "limit": limit}
+    query = db.query(TourModel)
+    if destination:
+        query = query.filter(TourModel.destination.ilike(f"%{destination}%"))
+    tours = query.offset(skip).limit(limit).all()
+    return tours
 
 
-@router.get("/{tour_id}")
+@router.get("/{tour_id}", response_model=Tour)
 async def get_tour(tour_id: int, db: Session = Depends(get_db)):
-    return {"message": f"Tour {tour_id}"}
+    tour = db.query(TourModel).filter(TourModel.id == tour_id).first()
+    if not tour:
+        raise HTTPException(status_code=404, detail="Tour not found")
+    return tour
 
 
-@router.post("/")
-async def create_tour(tour_data: dict, db: Session = Depends(get_db)):
-    return {"message": "Tour created"}
+@router.post("/", response_model=Tour)
+async def create_tour(tour_in: TourCreate, db: Session = Depends(get_db)):
+    tour = TourModel(**tour_in.model_dump())
+    db.add(tour)
+    db.commit()
+    db.refresh(tour)
+    return tour
 
 
-@router.put("/{tour_id}")
-async def update_tour(tour_id: int, tour_data: dict, db: Session = Depends(get_db)):
-    return {"message": f"Tour {tour_id} updated"}
+@router.put("/{tour_id}", response_model=Tour)
+async def update_tour(tour_id: int, tour_in: TourUpdate, db: Session = Depends(get_db)):
+    tour = db.query(TourModel).filter(TourModel.id == tour_id).first()
+    if not tour:
+        raise HTTPException(status_code=404, detail="Tour not found")
+    
+    update_data = tour_in.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(tour, key, value)
+    
+    db.add(tour)
+    db.commit()
+    db.refresh(tour)
+    return tour
 
 
 @router.delete("/{tour_id}")
 async def delete_tour(tour_id: int, db: Session = Depends(get_db)):
+    tour = db.query(TourModel).filter(TourModel.id == tour_id).first()
+    if not tour:
+        raise HTTPException(status_code=404, detail="Tour not found")
+    db.delete(tour)
+    db.commit()
     return {"message": f"Tour {tour_id} deleted"}

@@ -1,34 +1,28 @@
-import axios from 'axios';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
-
-const api = axios.create({
-  baseURL: `${API_URL}/tours`,
-});
+import api from './api';
 
 export const tourService = {
-  getAll: async (params?: { skip?: number; limit?: number; destination?: string }) => {
-    const response = await api.get('/', { params });
+  getAll: async (params?: any) => {
+    const response = await api.get('tours/', { params });
     return response.data;
   },
 
   getById: async (id: number) => {
-    const response = await api.get(`/${id}`);
+    const response = await api.get(`tours/${id}`);
     return response.data;
   },
 
   create: async (data: any) => {
-    const response = await api.post('/', data);
+    const response = await api.post('tours/', data);
     return response.data;
   },
 
   update: async (id: number, data: any) => {
-    const response = await api.put(`/${id}`, data);
+    const response = await api.put(`tours/${id}`, data);
     return response.data;
   },
 
   delete: async (id: number) => {
-    const response = await api.delete(`/${id}`);
+    const response = await api.delete(`tours/${id}`);
     return response.data;
   },
 };

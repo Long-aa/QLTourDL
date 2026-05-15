@@ -1,34 +1,28 @@
-import axios from 'axios';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
-
-const api = axios.create({
-  baseURL: `${API_URL}/customers`,
-});
+import api from './api';
 
 export const customerService = {
-  getAll: async (params?: { skip?: number; limit?: number }) => {
-    const response = await api.get('/', { params });
+  getAll: async () => {
+    const response = await api.get('customers/');
     return response.data;
   },
 
-  getById: async (id: number) => {
-    const response = await api.get(`/${id}`);
+  getCustomerById: async (id: number) => {
+    const response = await api.get(`customers/${id}`);
     return response.data;
   },
 
-  create: async (data: any) => {
-    const response = await api.post('/', data);
+  createCustomer: async (data: any) => {
+    const response = await api.post('customers/', data);
     return response.data;
   },
 
-  update: async (id: number, data: any) => {
-    const response = await api.put(`/${id}`, data);
+  updateCustomer: async (id: number, data: any) => {
+    const response = await api.put(`customers/${id}`, data);
     return response.data;
   },
 
-  delete: async (id: number) => {
-    const response = await api.delete(`/${id}`);
+  deleteCustomer: async (id: number) => {
+    const response = await api.delete(`customers/${id}`);
     return response.data;
   },
 };

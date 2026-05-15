@@ -14,7 +14,7 @@ class Order(Base):
     status = Column(String(50), default="pending")
     payment_status = Column(String(50), default="unpaid")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
     customer = relationship("Customer", back_populates="orders")
     tour = relationship("Tour")

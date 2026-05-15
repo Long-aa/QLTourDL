@@ -1,32 +1,20 @@
-import axios from 'axios';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
-
-const api = axios.create({
-  baseURL: `${API_URL}/auth`,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+import api from './api';
 
 export const authService = {
-  login: async (email: string, password: string) => {
-    const formData = new URLSearchParams();
-    formData.append('username', email);
-    formData.append('password', password);
-    
-    const response = await api.post('/login', formData, {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    });
+  login: async (credentials: any) => {
+    const response = await api.post('auth/login', credentials);
+    if (response.data.access_token) {
+      localStorage.setItem('token', response.data.access_token);
+    }
     return response.data;
   },
 
-  register: async (email: string, password: string, fullName: string) => {
-    const response = await api.post('/register', {
-      email,
-      password,
-      full_name: fullName,
-    });
+  logout: () => {
+    localStorage.removeItem('token');
+  },
+
+  getCurrentUser: async () => {
+    const response = await api.get('auth/me');
     return response.data;
   },
 };

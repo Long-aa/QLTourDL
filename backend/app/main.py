@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import auth, tours, customers, orders, employees, suppliers, reports, settings
+from app.api import auth, tours, customers, orders, employees, suppliers, reports, settings, guides_vehicles, uploads
 from app.core.config import settings as app_settings
 
 app = FastAPI(
@@ -25,6 +25,8 @@ app.include_router(employees.router, prefix="/api/v1/employees", tags=["employee
 app.include_router(suppliers.router, prefix="/api/v1/suppliers", tags=["suppliers"])
 app.include_router(reports.router, prefix="/api/v1/reports", tags=["reports"])
 app.include_router(settings.router, prefix="/api/v1/settings", tags=["settings"])
+app.include_router(guides_vehicles.router, prefix="/api/v1/guides-vehicles", tags=["guides-vehicles"])
+app.include_router(uploads.router, prefix="/api/v1/uploads", tags=["uploads"])
 
 @app.get("/")
 async def root():

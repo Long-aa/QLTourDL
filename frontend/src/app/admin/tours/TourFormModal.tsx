@@ -47,16 +47,12 @@ export function TourFormModal({ onClose, tour }: TourFormModalProps) {
               {/* Điểm đến */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">Điểm đến</label>
-                <select 
+                <input
+                  type="text"
                   defaultValue={tour?.destination || ''}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm bg-white cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2024%2024%22%20stroke%3D%22%236b7280%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22m19%209-7%207-7-7%22%2F%3E%3C%2Fsvg%3E')] bg-[length:1.25rem_1.25rem] bg-[right_0.75rem_center] bg-no-repeat pr-10 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-200"
-                >
-                  <option value="">Chọn điểm đến</option>
-                  <option value="sapa">Sapa</option>
-                  <option value="danang">Đà Nẵng</option>
-                  <option value="phuquoc">Phú Quốc</option>
-                  <option value="halong">Hạ Long</option>
-                </select>
+                  placeholder="VD: Hà Nội, Đà Nẵng, Sapa..."
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm dark:bg-gray-900 dark:border-gray-800 dark:text-gray-200 dark:placeholder-gray-600"
+                />
               </div>
 
               {/* Giá */}
@@ -89,14 +85,10 @@ export function TourFormModal({ onClose, tour }: TourFormModalProps) {
                 <label className="block text-sm font-medium text-gray-700 mb-1.5 dark:text-gray-300">Ngày khởi hành</label>
                 <div className="relative">
                   <input
-                    type="text"
+                    type="date"
                     defaultValue={tour?.date || ''}
-                    placeholder="mm/dd/yyyy"
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm dark:bg-gray-900 dark:border-gray-800 dark:text-gray-200 dark:placeholder-gray-600"
                   />
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-gray-400">
-                    <Calendar className="w-4 h-4" />
-                  </div>
                 </div>
               </div>
             </div>
