@@ -132,7 +132,9 @@ export default function AdminTourDetailPage({ params }: { params: Promise<{ id: 
               </div>
               <div>
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Đánh giá</p>
-                <p className="text-2xl font-black text-gray-900 dark:text-white">0 <span className="text-sm text-gray-400 font-bold">(0)</span></p>
+                <p className="text-2xl font-black text-gray-900 dark:text-white">
+                  {(tour.rating || 5.0).toFixed(1)} <span className="text-sm text-gray-400 font-bold">({tour.review_count || 0})</span>
+                </p>
               </div>
             </div>
           </div>
@@ -280,6 +282,59 @@ export default function AdminTourDetailPage({ params }: { params: Promise<{ id: 
               </div>
 
               <div className="pt-6 border-t border-gray-50 dark:border-gray-800">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Hướng dẫn viên điều hành</p>
+                <div className="space-y-3">
+                  {tour.guides && tour.guides.length > 0 ? (
+                    tour.guides.map((guide: any) => (
+                      <div key={guide.id} className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full overflow-hidden bg-blue-50 flex-shrink-0 border border-blue-100 dark:bg-blue-900/20 dark:border-blue-800">
+                          {guide.image_url ? (
+                            <img src={guide.image_url} alt={guide.full_name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase">
+                              {guide.full_name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                            </div>
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-black text-gray-900 dark:text-white truncate">{guide.full_name}</p>
+                          <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">Kinh nghiệm: {guide.experience || 'Chưa cập nhật'}</p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-gray-500 italic">Chưa chỉ định hướng dẫn viên</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="pt-6 border-t border-gray-50 dark:border-gray-800">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Nhà cung cấp dịch vụ</p>
+                <div className="space-y-4">
+                  {tour.suppliers && tour.suppliers.length > 0 ? (
+                    tour.suppliers.map((supplier: any) => (
+                      <div key={supplier.id} className="flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400 flex-shrink-0">
+                          <ImageIcon className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <p className="text-sm font-black text-gray-900 dark:text-white truncate">{supplier.name}</p>
+                            <span className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 rounded text-[8px] font-black uppercase tracking-tighter">
+                              {supplier.service_type}
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">{supplier.address || 'N/A'}</p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-gray-500 italic">Chưa chỉ định nhà cung cấp</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="pt-6 border-t border-gray-50 dark:border-gray-800">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Giá niêm yết</p>
                 <p className="text-3xl font-black text-blue-600">{Number(tour.price).toLocaleString('vi-VN')}₫</p>
               </div>
@@ -309,7 +364,10 @@ export default function AdminTourDetailPage({ params }: { params: Promise<{ id: 
             ...tour,
             date: tour.startDate, // Map field names to match modal expected props
           }} 
-          onClose={() => setIsEditModalOpen(false)} 
+          onClose={() => {
+            setIsEditModalOpen(false);
+            fetchTour();
+          }} 
         />
       )}
     </div>

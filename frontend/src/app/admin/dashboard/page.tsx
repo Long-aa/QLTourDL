@@ -13,20 +13,23 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<any>(null);
   const [revenueData, setRevenueData] = useState<any[]>([]);
   const [categoryData, setCategoryData] = useState<any[]>([]);
+  const [featuredTours, setFeaturedTours] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
       try {
         setLoading(true);
-        const [statsData, revenueData, categoryData] = await Promise.all([
+        const [statsData, revenueData, categoryData, featuredData] = await Promise.all([
           reportService.getDashboardStats(),
           reportService.getRevenueChart(),
-          reportService.getCategoryDistribution()
+          reportService.getCategoryDistribution(),
+          reportService.getFeaturedTours()
         ]);
         setStats(statsData);
         setRevenueData(revenueData);
         setCategoryData(categoryData);
+        setFeaturedTours(featuredData);
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
       } finally {
@@ -107,7 +110,7 @@ export default function DashboardPage() {
           <RecentOrders />
         </div>
         <div className="lg:col-span-2">
-          <FeaturedTours />
+          <FeaturedTours data={featuredTours} />
         </div>
       </div>
     </div>

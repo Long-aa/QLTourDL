@@ -1,6 +1,23 @@
-from sqlalchemy import Column, Integer, String, Text, Numeric, Date, DateTime, func, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, Numeric, Date, DateTime, func, ForeignKey, Table
 from sqlalchemy.orm import relationship
 from app.core.database import Base
+
+
+# Association table for Many-to-Many relationship between Tour and TourGuide
+tour_guide_assignments = Table(
+    "tour_guide_assignments",
+    Base.metadata,
+    Column("tour_id", Integer, ForeignKey("tours.id", ondelete="CASCADE"), primary_key=True),
+    Column("guide_id", Integer, ForeignKey("tour_guides.id", ondelete="CASCADE"), primary_key=True),
+)
+
+# Association table for Many-to-Many relationship between Tour and Supplier
+tour_supplier_assignments = Table(
+    "tour_supplier_assignments",
+    Base.metadata,
+    Column("tour_id", Integer, ForeignKey("tours.id", ondelete="CASCADE"), primary_key=True),
+    Column("supplier_id", Integer, ForeignKey("suppliers.id", ondelete="CASCADE"), primary_key=True),
+)
 
 
 class Tour(Base):
@@ -20,8 +37,7 @@ class Tour(Base):
     image_url = Column(String(500))
     image_size = Column(Integer)
     
-    # New relationships
-    guide_id = Column(Integer, ForeignKey("tour_guides.id"))
+    # Relationships
     vehicle_id = Column(Integer, ForeignKey("vehicles.id"))
     supplier_id = Column(Integer, ForeignKey("suppliers.id"))
     
@@ -29,9 +45,10 @@ class Tour(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     schedules = relationship("TourSchedule", back_populates="tour", cascade="all, delete-orphan")
-    guide = relationship("TourGuide")
+    guides = relationship("TourGuide", secondary=tour_guide_assignments)
     vehicle = relationship("Vehicle")
-    supplier = relationship("Supplier")
+    supplier = relationship("Supplier") # Keeping for legacy/single access
+    suppliers = relationship("Supplier", secondary=tour_supplier_assignments)
 
 
 class TourSchedule(Base):

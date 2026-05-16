@@ -2,11 +2,51 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { User, Mail, Lock, Eye, EyeOff, Chrome } from 'lucide-react';
+import { User, Mail, Lock, Eye, EyeOff, Chrome, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { authService } from '@/services/auth.service';
+import { useRouter } from 'next/navigation';
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    
+    if (password !== confirmPassword) {
+      setError('Mật khẩu xác nhận không khớp.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await authService.register({
+        email,
+        password,
+        full_name: fullName
+      });
+      setSuccess(true);
+      setTimeout(() => {
+        router.push('/login');
+      }, 2000);
+    } catch (err: any) {
+      console.error(err);
+      setError(err.response?.data?.detail || 'Đăng ký thất bại. Vui lòng thử lại.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex bg-white font-sans">
@@ -40,15 +80,31 @@ export default function RegisterPage() {
               </button>
             </div>
 
-            <form className="space-y-5">
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-600 text-sm font-medium animate-in fade-in slide-in-from-top-1">
+                <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                <p>{error}</p>
+              </div>
+            )}
+
+            {success && (
+              <div className="mb-6 p-4 bg-green-50 border border-green-100 rounded-2xl flex items-center gap-3 text-green-600 text-sm font-medium animate-in fade-in slide-in-from-top-1">
+                <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+                <p>Đăng ký thành công! Đang chuyển hướng sang trang đăng nhập...</p>
+              </div>
+            )}
+
+            <form onSubmit={handleRegister} className="space-y-5">
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">HỌ VÀ TÊN</label>
                 <div className="relative group">
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
                   <input 
                     type="text" 
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
                     placeholder="Nguyễn Văn A" 
-                    className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-medium"
+                    className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-medium text-gray-900"
                     required
                   />
                 </div>
@@ -60,8 +116,10 @@ export default function RegisterPage() {
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
                   <input 
                     type="email" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     placeholder="concierge@luxevoyage.com" 
-                    className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-medium"
+                    className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-medium text-gray-900"
                     required
                   />
                 </div>
@@ -73,8 +131,10 @@ export default function RegisterPage() {
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
                   <input 
                     type={showPassword ? 'text' : 'password'} 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••" 
-                    className="w-full pl-12 pr-12 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-medium"
+                    className="w-full pl-12 pr-12 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-medium text-gray-900"
                     required
                   />
                   <button 
@@ -93,8 +153,10 @@ export default function RegisterPage() {
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
                   <input 
                     type={showConfirmPassword ? 'text' : 'password'} 
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="••••••••" 
-                    className="w-full pl-12 pr-12 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-medium"
+                    className="w-full pl-12 pr-12 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-medium text-gray-900"
                     required
                   />
                   <button 
@@ -109,9 +171,13 @@ export default function RegisterPage() {
 
               <button 
                 type="submit"
-                className="w-full py-4 bg-blue-600 text-white rounded-2xl text-sm font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all active:scale-[0.98] mt-4"
+                disabled={loading || success}
+                className="w-full py-4 bg-blue-600 text-white rounded-2xl text-sm font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all active:scale-[0.98] mt-4 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                Đăng ký tài khoản
+                {loading ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : null}
+                {loading ? 'Đang tạo tài khoản...' : 'Đăng ký tài khoản'}
               </button>
 
               <div className="relative flex items-center justify-center py-2">

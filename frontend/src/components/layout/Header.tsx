@@ -7,14 +7,33 @@ import { useTheme } from 'next-themes';
 import { useEffect } from 'react';
 import Link from 'next/link';
 
+import { authService } from '@/services/auth.service';
+import { useAuth } from '@/components/providers/AuthProvider';
+
 export function Header() {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const { user, logout } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
+  };
+
+  const getRoleLabel = (role: string) => {
+    switch (role?.toLowerCase()) {
+      case 'admin': return 'Quản trị viên';
+      case 'staff': return 'Nhân viên';
+      case 'user': return 'Khách hàng';
+      default: return role;
+    }
+  };
   
   const notifications = [
     { id: 1, title: 'Đơn hàng mới #EV-90210', desc: 'Khách hàng Nguyễn Văn A vừa đặt cọc thành công cho tour Maldives Exclusive...', time: '5 phút trước', type: 'order', unread: true },
@@ -116,12 +135,20 @@ export function Header() {
 
         <div className="relative group">
           <button className="flex items-center gap-2 p-1 pr-3 hover:bg-gray-100 rounded-lg transition-colors dark:hover:bg-gray-800">
-            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-blue-600/20">
-              <User className="w-4 h-4" />
+            <div className="w-8 h-8 bg-blue-600 rounded-full overflow-hidden flex items-center justify-center text-white shadow-lg shadow-blue-600/20">
+              {user?.avatar_url ? (
+                <img src={user.avatar_url} alt={user?.full_name} className="w-full h-full object-cover" />
+              ) : (
+                <User className="w-4 h-4" />
+              )}
             </div>
             <div className="hidden md:block text-left">
-              <p className="text-xs font-bold text-gray-900 leading-tight dark:text-gray-100">Admin</p>
-              <p className="text-[10px] text-gray-400 leading-tight dark:text-gray-500">Quản trị viên</p>
+              <p className="text-xs font-bold text-gray-900 leading-tight dark:text-gray-100">
+                {user?.full_name || user?.email || 'Người dùng'}
+              </p>
+              <p className="text-[10px] text-gray-400 leading-tight dark:text-gray-500">
+                {user?.role ? getRoleLabel(user.role) : 'Thành viên'}
+              </p>
             </div>
           </button>
 
@@ -135,10 +162,7 @@ export function Header() {
 
               <div className="h-px bg-gray-100 my-1 dark:bg-gray-800"></div>
               <button 
-                onClick={() => {
-                  // Mock logout logic
-                  window.location.href = '/login';
-                }}
+                onClick={handleLogout}
                 className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-all font-bold dark:hover:bg-red-900/10"
               >
                 <LogOut className="w-4 h-4" />

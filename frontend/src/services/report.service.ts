@@ -16,5 +16,9 @@ export const reportService = {
   getCategoryDistribution: async (params: any = {}) => {
     const response = await apiClient.get('reports/charts/categories', { params });
     return response.data;
+  },
+  getFeaturedTours: async (params: any = {}) => {
+    const response = await apiClient.get('reports/featured-tours', { params });
+    return response.data;
   }
 };

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Settings, 
   History, 
@@ -20,12 +20,77 @@ import {
   Eye,
   EyeOff,
   ShieldCheck,
-  CreditCard
+  CreditCard,
+  Loader2,
+  User as UserIcon,
+  Plus as PlusIcon
 } from 'lucide-react';
+import { settingsService, SystemSettings } from '@/services/settings.service';
+import { toast } from 'react-hot-toast';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<'general' | 'backup' | 'integration'>('general');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  
+  const [settings, setSettings] = useState<SystemSettings | null>(null);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const data = await settingsService.getSettings();
+        setSettings(data);
+      } catch (error) {
+        toast.error('Không thể tải cấu hình hệ thống.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSettings();
+  }, []);
+
+  const handleSave = async () => {
+    if (!settings) return;
+    setSaving(true);
+    try {
+      await settingsService.updateSettings(settings);
+      toast.success('Đã lưu cấu hình hệ thống!');
+      window.dispatchEvent(new CustomEvent('settingsUpdated'));
+    } catch (error) {
+      toast.error('Lưu thất bại.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const res = await settingsService.uploadLogo(file);
+      setSettings(prev => prev ? { ...prev, logo_url: res.url } : null);
+      toast.success('Đã tải logo lên Supabase!');
+      window.dispatchEvent(new CustomEvent('settingsUpdated'));
+    } catch (error) {
+      toast.error('Tải lên thất bại.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-[400px] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
+  if (!settings) return null;
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -35,8 +100,12 @@ export default function SettingsPage() {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Cấu hình hệ thống</h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Quản lý các thông số cốt lõi của nền tảng LuxeVoyage.</p>
         </div>
-        <button className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all text-sm font-bold shadow-lg shadow-blue-600/20 active:scale-95">
-          <Save className="w-4 h-4" />
+        <button 
+          onClick={handleSave}
+          disabled={saving}
+          className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all text-sm font-bold shadow-lg shadow-blue-600/20 active:scale-95 disabled:opacity-50"
+        >
+          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
           Lưu thay đổi
         </button>
       </div>
@@ -81,12 +150,22 @@ export default function SettingsPage() {
                 {/* Logo Upload */}
                 <div className="space-y-3">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">LOGO HỆ THỐNG</label>
-                  <div className="w-64 h-40 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/50 flex flex-col items-center justify-center group hover:border-blue-400 hover:bg-blue-50/30 transition-all cursor-pointer dark:border-gray-700 dark:bg-gray-800/50 dark:hover:border-blue-500 dark:hover:bg-blue-900/10">
-                    <div className="p-3 rounded-full bg-white shadow-sm text-blue-600 group-hover:scale-110 transition-transform dark:bg-gray-700 dark:text-blue-400">
-                      <UploadCloud className="w-6 h-6" />
-                    </div>
-                    <p className="text-xs font-bold text-blue-600 mt-3 dark:text-blue-400">Nhấn để tải lên</p>
-                    <p className="text-[10px] text-gray-400 mt-1 dark:text-gray-500">PNG, JPG, SVG (Tối đa 2MB)</p>
+                  <div 
+                    onClick={() => document.getElementById('logo-upload')?.click()}
+                    className="w-64 h-40 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/50 flex flex-col items-center justify-center group hover:border-blue-400 hover:bg-blue-50/30 transition-all cursor-pointer dark:border-gray-700 dark:bg-gray-800/50 dark:hover:border-blue-500 dark:hover:bg-blue-900/10 overflow-hidden"
+                  >
+                    {settings.logo_url ? (
+                      <img src={settings.logo_url} alt="Logo" className="w-full h-full object-contain p-4" />
+                    ) : (
+                      <>
+                        <div className="p-3 rounded-full bg-white shadow-sm text-blue-600 group-hover:scale-110 transition-transform dark:bg-gray-700 dark:text-blue-400">
+                          {uploading ? <Loader2 className="w-6 h-6 animate-spin" /> : <UploadCloud className="w-6 h-6" />}
+                        </div>
+                        <p className="text-xs font-bold text-blue-600 mt-3 dark:text-blue-400">{uploading ? 'Đang tải...' : 'Nhấn để tải lên'}</p>
+                        <p className="text-[10px] text-gray-400 mt-1 dark:text-gray-500">PNG, JPG, SVG (Tối đa 2MB)</p>
+                      </>
+                    )}
+                    <input id="logo-upload" type="file" className="hidden" accept="image/*" onChange={handleLogoUpload} />
                   </div>
                 </div>
 
@@ -94,27 +173,47 @@ export default function SettingsPage() {
                 <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="md:col-span-2 space-y-1.5">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">TÊN HỆ THỐNG</label>
-                    <input type="text" defaultValue="LuxeVoyage" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:focus:bg-gray-800/50" />
+                    <input 
+                      type="text" 
+                      value={settings.site_name} 
+                      onChange={(e) => setSettings({...settings, site_name: e.target.value})}
+                      className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:focus:bg-gray-800/50" 
+                    />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">EMAIL LIÊN HỆ</label>
                     <div className="relative">
                       <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
-                      <input type="email" defaultValue="contact@luxevoyage.vn" className="w-full pl-11 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:focus:bg-gray-800/50" />
+                      <input 
+                        type="email" 
+                        value={settings.contact_email} 
+                        onChange={(e) => setSettings({...settings, contact_email: e.target.value})}
+                        className="w-full pl-11 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:focus:bg-gray-800/50" 
+                      />
                     </div>
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">SỐ ĐIỆN THOẠI</label>
                     <div className="relative">
                       <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
-                      <input type="text" defaultValue="+84 123 456 789" className="w-full pl-11 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:focus:bg-gray-800/50" />
+                      <input 
+                        type="text" 
+                        value={settings.contact_phone} 
+                        onChange={(e) => setSettings({...settings, contact_phone: e.target.value})}
+                        className="w-full pl-11 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:focus:bg-gray-800/50" 
+                      />
                     </div>
                   </div>
                   <div className="md:col-span-2 space-y-1.5">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">ĐỊA CHỈ TRỤ SỞ</label>
                     <div className="relative">
                       <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
-                      <input type="text" defaultValue="Tầng 15, Tòa nhà Bitexco, Quận 1, TP.HCM" className="w-full pl-11 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:focus:bg-gray-800/50" />
+                      <input 
+                        type="text" 
+                        value={settings.address} 
+                        onChange={(e) => setSettings({...settings, address: e.target.value})}
+                        className="w-full pl-11 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:focus:bg-gray-800/50" 
+                      />
                     </div>
                   </div>
                 </div>
@@ -129,7 +228,11 @@ export default function SettingsPage() {
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">MÚI GIỜ</label>
                   <div className="relative">
                     <Clock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
-                    <select className="w-full pl-11 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-medium bg-white cursor-pointer dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300">
+                    <select 
+                      value={settings.timezone}
+                      onChange={(e) => setSettings({...settings, timezone: e.target.value})}
+                      className="w-full pl-11 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-medium bg-white cursor-pointer dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300"
+                    >
                       <option>(GMT+07:00) Bangkok, Hanoi, Jakarta</option>
                       <option>(GMT+08:00) Singapore, Beijing</option>
                       <option>(GMT+00:00) London, UTC</option>
@@ -140,7 +243,11 @@ export default function SettingsPage() {
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">NGÔN NGỮ MẶC ĐỊNH</label>
                   <div className="relative">
                     <Globe className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
-                    <select className="w-full pl-11 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-medium bg-white cursor-pointer dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300">
+                    <select 
+                      value={settings.default_language}
+                      onChange={(e) => setSettings({...settings, default_language: e.target.value})}
+                      className="w-full pl-11 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-medium bg-white cursor-pointer dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300"
+                    >
                       <option>Tiếng Việt</option>
                       <option>English (US)</option>
                       <option>Français</option>
@@ -257,21 +364,41 @@ export default function SettingsPage() {
                 <div className="grid grid-cols-3 gap-4">
                   <div className="col-span-2 space-y-1.5">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">SMTP HOST</label>
-                    <input type="text" defaultValue="smtp.gmail.com" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:focus:bg-gray-800/50" />
+                    <input 
+                      type="text" 
+                      value={settings.smtp_host} 
+                      onChange={(e) => setSettings({...settings, smtp_host: e.target.value})}
+                      className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:focus:bg-gray-800/50" 
+                    />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">SMTP PORT</label>
-                    <input type="text" defaultValue="587" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-medium text-center dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:focus:bg-gray-800/50" />
+                    <input 
+                      type="number" 
+                      value={settings.smtp_port} 
+                      onChange={(e) => setSettings({...settings, smtp_port: parseInt(e.target.value)})}
+                      className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-medium text-center dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:focus:bg-gray-800/50" 
+                    />
                   </div>
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">USERNAME / EMAIL</label>
-                  <input type="email" defaultValue="admin@system.com" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:focus:bg-gray-800/50" />
+                  <input 
+                    type="email" 
+                    value={settings.smtp_user || ''} 
+                    onChange={(e) => setSettings({...settings, smtp_user: e.target.value})}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:focus:bg-gray-800/50" 
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">PASSWORD / APP PASSWORD</label>
                   <div className="relative">
-                    <input type={showPassword ? 'text' : 'password'} defaultValue="••••••••" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:focus:bg-gray-800/50" />
+                    <input 
+                      type={showPassword ? 'text' : 'password'} 
+                      value={settings.smtp_password || ''} 
+                      onChange={(e) => setSettings({...settings, smtp_password: e.target.value})}
+                      className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-medium dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:focus:bg-gray-800/50" 
+                    />
                     <button onClick={() => setShowPassword(!showPassword)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors dark:text-gray-500 dark:hover:text-gray-300">
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -300,7 +427,11 @@ export default function SettingsPage() {
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-500">LỰA CHỌN CỔNG THANH TOÁN MẶC ĐỊNH</label>
                   <div className="grid grid-cols-3 gap-3">
                     {['VNPay', 'MoMo', 'Stripe'].map((gateway) => (
-                      <button key={gateway} className={`py-2.5 rounded-xl text-xs font-bold border-2 transition-all ${gateway === 'VNPay' ? 'bg-blue-600 text-white border-blue-600 shadow-md dark:bg-blue-600 dark:border-blue-600' : 'bg-white text-gray-500 border-gray-100 hover:border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 dark:hover:border-gray-600'}`}>
+                      <button 
+                        key={gateway} 
+                        onClick={() => setSettings({...settings, default_payment_gateway: gateway})}
+                        className={`py-2.5 rounded-xl text-xs font-bold border-2 transition-all ${settings.default_payment_gateway === gateway ? 'bg-blue-600 text-white border-blue-600 shadow-md dark:bg-blue-600 dark:border-blue-600' : 'bg-white text-gray-500 border-gray-100 hover:border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 dark:hover:border-gray-600'}`}
+                      >
                         {gateway}
                       </button>
                     ))}
@@ -317,17 +448,32 @@ export default function SettingsPage() {
                   <div className="space-y-3">
                     <div className="space-y-1">
                       <label className="text-[10px] font-bold text-gray-500 dark:text-gray-500">VNPAY TMNCODE</label>
-                      <input type="text" defaultValue="GH73KD92" className="w-full px-4 py-2 border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm font-medium bg-white dark:bg-gray-800 dark:border-blue-900/30 dark:text-gray-200" />
+                      <input 
+                        type="text" 
+                        value={settings.vnpay_config.tmn_code} 
+                        onChange={(e) => setSettings({...settings, vnpay_config: {...settings.vnpay_config, tmn_code: e.target.value}})}
+                        className="w-full px-4 py-2 border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm font-medium bg-white dark:bg-gray-800 dark:border-blue-900/30 dark:text-gray-200" 
+                      />
                     </div>
                     <div className="space-y-1">
                       <label className="text-[10px] font-bold text-gray-500 dark:text-gray-500">HASH SECRET</label>
                       <div className="relative">
-                        <input type="password" defaultValue="A1B2C3D4E5F6G7H8I9J0K1L2M3N405P6" className="w-full pl-4 pr-10 py-2 border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm font-medium bg-white dark:bg-gray-800 dark:border-blue-900/30 dark:text-gray-200" />
+                        <input 
+                          type="password" 
+                          value={settings.vnpay_config.hash_secret} 
+                          onChange={(e) => setSettings({...settings, vnpay_config: {...settings.vnpay_config, hash_secret: e.target.value}})}
+                          className="w-full pl-4 pr-10 py-2 border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm font-medium bg-white dark:bg-gray-800 dark:border-blue-900/30 dark:text-gray-200" 
+                        />
                         <Eye className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 dark:text-gray-600" />
                       </div>
                     </div>
                     <label className="flex items-center gap-2 cursor-pointer pt-1">
-                      <input type="checkbox" defaultChecked className="w-4 h-4 rounded border-blue-300 dark:border-blue-900/50 text-blue-600 focus:ring-blue-500 dark:bg-gray-800" />
+                      <input 
+                        type="checkbox" 
+                        checked={settings.vnpay_config.is_sandbox} 
+                        onChange={(e) => setSettings({...settings, vnpay_config: {...settings.vnpay_config, is_sandbox: e.target.checked}})}
+                        className="w-4 h-4 rounded border-blue-300 dark:border-blue-900/50 text-blue-600 focus:ring-blue-500 dark:bg-gray-800" 
+                      />
                       <span className="text-xs font-bold text-blue-900 dark:text-blue-400">Chế độ Sandbox (Thử nghiệm)</span>
                     </label>
                   </div>
@@ -341,14 +487,3 @@ export default function SettingsPage() {
   );
 }
 
-const PlusIcon = ({ className }: { className?: string }) => (
-  <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M5 12h14"/><path d="M12 5v14"/>
-  </svg>
-);
-
-const UserIcon = ({ className }: { className?: string }) => (
-  <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-  </svg>
-);

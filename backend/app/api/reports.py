@@ -135,3 +135,26 @@ async def get_category_distribution(
     if not chart_data:
         chart_data = [{"name": "Nghỉ dưỡng", "value": 100, "color": "#2563eb"}]
     return chart_data
+
+@router.get("/featured-tours")
+async def get_featured_tours(limit: int = 4, db: Session = Depends(get_db)):
+    # Find tours with most orders
+    query = db.query(
+        TourModel,
+        func.count(OrderModel.id).label('order_count')
+    ).outerjoin(OrderModel).group_by(TourModel.id).order_by(func.count(OrderModel.id).desc()).limit(limit)
+    
+    results = query.all()
+    
+    featured = []
+    for tour, count in results:
+        featured.append({
+            "id": tour.id,
+            "name": tour.name,
+            "bookings": count,
+            "price": f"{tour.price:,.0f}₫" if tour.price else "0₫",
+            "rating": 5.0, # Placeholder for now as rating logic is in tour API
+            "image": tour.image_url or 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=400&h=250&fit=crop'
+        })
+    
+    return featured

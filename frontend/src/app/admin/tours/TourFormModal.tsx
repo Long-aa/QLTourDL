@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { X, UploadCloud, Calendar, Loader2, Plus, Trash2, CheckCircle2, ChevronRight, ChevronLeft, MapPin, DollarSign, Users, Clock, Info, ListTodo, Settings } from 'lucide-react';
+import { X, UploadCloud, Calendar, Loader2, Plus, Trash2, CheckCircle2, ChevronRight, ChevronLeft, MapPin, DollarSign, Users, Clock, Info, ListTodo, Settings, Search, Building2, Bus } from 'lucide-react';
 import { tourService } from '@/services/tour.service';
 import { uploadService } from '@/services/upload.service';
 import { guideVehicleService } from '@/services/guide-vehicle.service';
@@ -28,9 +28,9 @@ export function TourFormModal({ onClose, tour }: TourFormModalProps) {
     status: tour?.status || 'active',
     description: tour?.description || '',
     image_url: tour?.image_url || '',
-    guide_id: tour?.guide_id || '',
+    guide_ids: tour?.guides?.map((g: any) => g.id) || [],
     vehicle_id: tour?.vehicle_id || '',
-    supplier_id: tour?.supplier_id || ''
+    supplier_ids: tour?.suppliers?.map((s: any) => s.id) || []
   });
 
   const [schedules, setSchedules] = React.useState<any[]>(
@@ -46,6 +46,9 @@ export function TourFormModal({ onClose, tour }: TourFormModalProps) {
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const [imagePreview, setImagePreview] = React.useState<string>(tour?.image_url || '');
   const [loading, setLoading] = React.useState(false);
+  const [guideSearch, setGuideSearch] = React.useState('');
+  const [supplierSearch, setSupplierSearch] = React.useState('');
+  const [vehicleSearch, setVehicleSearch] = React.useState('');
 
   React.useEffect(() => {
     fetchResources();
@@ -128,9 +131,9 @@ export function TourFormModal({ onClose, tour }: TourFormModalProps) {
         ...formData,
         price: formData.price ? Number(String(formData.price).split('.')[0].replace(/[^0-9]/g, '')) : 0,
         max_participants: Number(formData.max_participants) || 0,
-        guide_id: formData.guide_id ? Number(formData.guide_id) : null,
+        guide_ids: formData.guide_ids,
         vehicle_id: formData.vehicle_id ? Number(formData.vehicle_id) : null,
-        supplier_id: formData.supplier_id ? Number(formData.supplier_id) : null,
+        supplier_ids: formData.supplier_ids,
         image_url,
         image_size,
         schedules
@@ -402,51 +405,260 @@ export function TourFormModal({ onClose, tour }: TourFormModalProps) {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   {/* Hướng dẫn viên */}
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-3 dark:text-gray-300">Hướng dẫn viên mặc định</label>
-                    <select
-                      name="guide_id"
-                      value={formData.guide_id}
-                      onChange={handleChange}
-                      className="w-full px-5 py-3.5 bg-white dark:bg-gray-800 border-none rounded-2xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm dark:text-gray-200 font-medium"
-                    >
-                      <option value="">-- Chưa chỉ định --</option>
-                      {resources.guides.map((g: any) => (
-                        <option key={g.id} value={g.id}>{g.employee?.user?.full_name} ({g.languages?.join(', ')})</option>
-                      ))}
-                    </select>
+                  <div className="md:col-span-2 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-sm font-bold text-gray-700 dark:text-gray-300">Hướng dẫn viên điều hành (Chọn nhiều)</label>
+                      <div className="relative w-64">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input 
+                          type="text"
+                          placeholder="Tìm tên, ngôn ngữ..."
+                          value={guideSearch}
+                          onChange={(e) => setGuideSearch(e.target.value)}
+                          className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-xs dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden shadow-sm bg-white dark:bg-gray-900">
+                      <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
+                        <table className="w-full text-left border-collapse">
+                          <thead className="sticky top-0 bg-gray-50 dark:bg-gray-800 z-10">
+                            <tr className="border-b border-gray-100 dark:border-gray-700">
+                              <th className="py-3 px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest w-12 text-center">Chọn</th>
+                              <th className="py-3 px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Họ tên</th>
+                              <th className="py-3 px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Ngôn ngữ</th>
+                              <th className="py-3 px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Kinh nghiệm</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
+                            {resources.guides
+                              .filter((g: any) => 
+                                !guideSearch || 
+                                g.full_name?.toLowerCase().includes(guideSearch.toLowerCase()) ||
+                                g.languages?.some((l: string) => l.toLowerCase().includes(guideSearch.toLowerCase()))
+                              )
+                              .map((g: any) => {
+                                const isSelected = formData.guide_ids.includes(g.id);
+                                return (
+                                  <tr 
+                                    key={g.id}
+                                    onClick={() => {
+                                      const newIds = isSelected 
+                                        ? formData.guide_ids.filter((id: number) => id !== g.id)
+                                        : [...formData.guide_ids, g.id];
+                                      setFormData(prev => ({ ...prev, guide_ids: newIds }));
+                                    }}
+                                    className={`hover:bg-blue-50/30 dark:hover:bg-blue-900/10 cursor-pointer transition-colors ${
+                                      isSelected ? 'bg-blue-50/20 dark:bg-blue-900/5' : ''
+                                    }`}
+                                  >
+                                    <td className="py-3 px-4 text-center">
+                                      <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
+                                        isSelected ? 'bg-blue-600 border-blue-600' : 'border-gray-200 dark:border-gray-700'
+                                      }`}>
+                                        {isSelected && <CheckCircle2 className="w-3 h-3 text-white" />}
+                                      </div>
+                                    </td>
+                                    <td className="py-3 px-4">
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-100 dark:border-gray-800">
+                                          {g.image_url ? (
+                                            <img src={g.image_url} alt={g.full_name} className="w-full h-full object-cover" />
+                                          ) : (
+                                            <div className="w-full h-full flex items-center justify-center bg-blue-50 text-blue-600 font-bold text-[10px] uppercase">
+                                              {g.full_name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                                            </div>
+                                          )}
+                                        </div>
+                                        <span className="text-xs font-bold text-gray-900 dark:text-gray-100">{g.full_name}</span>
+                                      </div>
+                                    </td>
+                                    <td className="py-3 px-4">
+                                      <div className="flex flex-wrap gap-1">
+                                        {g.languages?.slice(0, 3).map((l: string, i: number) => (
+                                          <span key={i} className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 rounded text-[9px] font-bold">
+                                            {l}
+                                          </span>
+                                        ))}
+                                        {g.languages?.length > 3 && <span className="text-[9px] text-gray-400">+{g.languages.length - 3}</span>}
+                                      </div>
+                                    </td>
+                                    <td className="py-3 px-4">
+                                      <span className="text-[10px] text-gray-500 dark:text-gray-400">{g.experience || 'Chưa cập nhật'}</span>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Phương tiện */}
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-3 dark:text-gray-300">Phương tiện di chuyển</label>
-                    <select
-                      name="vehicle_id"
-                      value={formData.vehicle_id}
-                      onChange={handleChange}
-                      className="w-full px-5 py-3.5 bg-white dark:bg-gray-800 border-none rounded-2xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm dark:text-gray-200 font-medium"
-                    >
-                      <option value="">-- Chưa chỉ định --</option>
-                      {resources.vehicles.map((v: any) => (
-                        <option key={v.id} value={v.id}>{v.plate_number} - {v.type} ({v.capacity} chỗ)</option>
-                      ))}
-                    </select>
+                  <div className="md:col-span-2 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-sm font-bold text-gray-700 dark:text-gray-300">Phương tiện di chuyển chính</label>
+                      <div className="relative w-64">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input 
+                          type="text"
+                          placeholder="Tìm biển số, loại xe..."
+                          value={vehicleSearch}
+                          onChange={(e) => setVehicleSearch(e.target.value)}
+                          className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-xs dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden shadow-sm bg-white dark:bg-gray-900">
+                      <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
+                        <table className="w-full text-left border-collapse">
+                          <thead className="sticky top-0 bg-gray-50 dark:bg-gray-800 z-10">
+                            <tr className="border-b border-gray-100 dark:border-gray-700">
+                              <th className="py-3 px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest w-12 text-center">Chọn</th>
+                              <th className="py-3 px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Biển số</th>
+                              <th className="py-3 px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Loại xe</th>
+                              <th className="py-3 px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Số chỗ</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
+                            {resources.vehicles
+                              .filter((v: any) => 
+                                !vehicleSearch || 
+                                v.plate_number?.toLowerCase().includes(vehicleSearch.toLowerCase()) ||
+                                v.type?.toLowerCase().includes(vehicleSearch.toLowerCase())
+                              )
+                              .map((v: any) => {
+                                const isSelected = formData.vehicle_id === v.id;
+                                return (
+                                  <tr 
+                                    key={v.id}
+                                    onClick={() => setFormData(prev => ({ ...prev, vehicle_id: isSelected ? '' : v.id }))}
+                                    className={`hover:bg-blue-50/30 dark:hover:bg-blue-900/10 cursor-pointer transition-colors ${
+                                      isSelected ? 'bg-blue-50/20 dark:bg-blue-900/5' : ''
+                                    }`}
+                                  >
+                                    <td className="py-3 px-4 text-center">
+                                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                                        isSelected ? 'bg-blue-600 border-blue-600' : 'border-gray-200 dark:border-gray-700'
+                                      }`}>
+                                        {isSelected && <div className="w-2 h-2 bg-white rounded-full" />}
+                                      </div>
+                                    </td>
+                                    <td className="py-3 px-4">
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                                          <Bus className="w-4 h-4" />
+                                        </div>
+                                        <span className="text-xs font-black text-gray-900 dark:text-gray-100">{v.plate_number}</span>
+                                      </div>
+                                    </td>
+                                    <td className="py-3 px-4">
+                                      <span className="text-xs font-bold text-gray-600 dark:text-gray-400">{v.type}</span>
+                                    </td>
+                                    <td className="py-3 px-4 text-center">
+                                      <span className="px-3 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-full text-[10px] font-black">
+                                        {v.capacity} chỗ
+                                      </span>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Nhà cung cấp / Khách sạn */}
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-bold text-gray-700 mb-3 dark:text-gray-300">Đối tác lưu trú / Khách sạn chính</label>
-                    <select
-                      name="supplier_id"
-                      value={formData.supplier_id}
-                      onChange={handleChange}
-                      className="w-full px-5 py-3.5 bg-white dark:bg-gray-800 border-none rounded-2xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm dark:text-gray-200 font-medium"
-                    >
-                      <option value="">-- Chưa chỉ định --</option>
-                      {resources.suppliers.filter((s: any) => s.service_type === 'hotel').map((s: any) => (
-                        <option key={s.id} value={s.id}>{s.name} - {s.address}</option>
-                      ))}
-                    </select>
+                  {/* Nhà cung cấp dịch vụ */}
+                  <div className="md:col-span-2 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-sm font-bold text-gray-700 dark:text-gray-300">Nhà cung cấp dịch vụ (Chọn nhiều)</label>
+                      <div className="relative w-64">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input 
+                          type="text"
+                          placeholder="Tìm tên nhà cung cấp, địa chỉ..."
+                          value={supplierSearch}
+                          onChange={(e) => setSupplierSearch(e.target.value)}
+                          className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-xs dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden shadow-sm bg-white dark:bg-gray-900">
+                      <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
+                        <table className="w-full text-left border-collapse">
+                          <thead className="sticky top-0 bg-gray-50 dark:bg-gray-800 z-10">
+                            <tr className="border-b border-gray-100 dark:border-gray-700">
+                              <th className="py-3 px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest w-12 text-center">Chọn</th>
+                              <th className="py-3 px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Tên nhà cung cấp</th>
+                              <th className="py-3 px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Loại hình</th>
+                              <th className="py-3 px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Địa chỉ</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
+                            {resources.suppliers
+                              .filter((s: any) => 
+                                !supplierSearch || 
+                                s.name?.toLowerCase().includes(supplierSearch.toLowerCase()) ||
+                                s.address?.toLowerCase().includes(supplierSearch.toLowerCase())
+                              )
+                              .map((s: any) => {
+                                const isSelected = formData.supplier_ids.includes(s.id);
+                                return (
+                                  <tr 
+                                    key={s.id}
+                                    onClick={() => {
+                                      const newIds = isSelected 
+                                        ? formData.supplier_ids.filter((id: number) => id !== s.id)
+                                        : [...formData.supplier_ids, s.id];
+                                      setFormData(prev => ({ ...prev, supplier_ids: newIds }));
+                                    }}
+                                    className={`hover:bg-blue-50/30 dark:hover:bg-blue-900/10 cursor-pointer transition-colors ${
+                                      isSelected ? 'bg-blue-50/20 dark:bg-blue-900/5' : ''
+                                    }`}
+                                  >
+                                    <td className="py-3 px-4 text-center">
+                                      <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
+                                        isSelected ? 'bg-blue-600 border-blue-600' : 'border-gray-200 dark:border-gray-700'
+                                      }`}>
+                                        {isSelected && <CheckCircle2 className="w-3 h-3 text-white" />}
+                                      </div>
+                                    </td>
+                                    <td className="py-3 px-4">
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-100 dark:border-gray-800 flex items-center justify-center">
+                                          {s.image_url ? (
+                                            <img src={s.image_url} alt={s.name} className="w-full h-full object-cover" />
+                                          ) : (
+                                            <Building2 className="w-4 h-4 text-gray-400" />
+                                          )}
+                                        </div>
+                                        <span className="text-xs font-bold text-gray-900 dark:text-gray-100">{s.name}</span>
+                                      </div>
+                                    </td>
+                                    <td className="py-3 px-4">
+                                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${
+                                        s.service_type === 'hotel' ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' :
+                                        s.service_type === 'restaurant' ? 'bg-orange-50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400' :
+                                        'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                                      }`}>
+                                        {s.service_type}
+                                      </span>
+                                    </td>
+                                    <td className="py-3 px-4">
+                                      <span className="text-[10px] text-gray-500 dark:text-gray-400 truncate max-w-[200px] block">{s.address || 'N/A'}</span>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

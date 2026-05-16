@@ -3,22 +3,47 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, Eye, EyeOff, Chrome } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Chrome, AlertCircle } from 'lucide-react';
+import { authService } from '@/services/auth.service';
+import { decodeToken } from '@/utils/auth';
+import { useAuth } from '@/components/providers/AuthProvider';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { refreshUser } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('admin@luxevoyage.vn');
   const [password, setPassword] = useState('admin123');
 
-  const handleLogin = (e: React.FormEvent) => {
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock login logic
-    localStorage.setItem('isLoggedIn', 'true');
-    if (email === 'admin@luxevoyage.vn') {
-      router.push('/admin/dashboard');
-    } else {
-      router.push('/');
+    setError('');
+    setLoading(true);
+
+    try {
+      const data = await authService.login({ email, password });
+      
+      // Refresh user state in AuthContext
+      await refreshUser();
+      
+      // Decode token to get role
+      const decoded = decodeToken(data.access_token);
+      const role = decoded?.role || 'user';
+
+      // Redirect based on role
+      if (role === 'admin' || role === 'staff') {
+        router.push('/admin/dashboard');
+      } else {
+        router.push('/');
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError(err.response?.data?.detail || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -54,6 +79,13 @@ export default function LoginPage() {
               </Link>
             </div>
 
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-600 text-sm font-medium animate-in fade-in slide-in-from-top-1">
+                <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                <p>{error}</p>
+              </div>
+            )}
+
             <form onSubmit={handleLogin} className="space-y-6">
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">ĐỊA CHỈ EMAIL</label>
@@ -64,7 +96,7 @@ export default function LoginPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="concierge@luxevoyage.com" 
-                    className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-medium"
+                    className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-medium text-gray-900"
                     required
                   />
                 </div>
@@ -82,7 +114,7 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••" 
-                    className="w-full pl-12 pr-12 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-medium"
+                    className="w-full pl-12 pr-12 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-sm font-medium text-gray-900"
                     required
                   />
                   <button 
@@ -102,9 +134,13 @@ export default function LoginPage() {
 
               <button 
                 type="submit"
-                className="w-full py-4 bg-blue-600 text-white rounded-2xl text-sm font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all active:scale-[0.98]"
+                disabled={loading}
+                className="w-full py-4 bg-blue-600 text-white rounded-2xl text-sm font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                Đăng nhập
+                {loading ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : null}
+                {loading ? 'Đang xử lý...' : 'Đăng nhập'}
               </button>
 
               <div className="relative flex items-center justify-center py-2">

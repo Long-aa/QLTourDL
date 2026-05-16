@@ -3,7 +3,11 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from app.core.database import get_db
 from app.models.tour import Tour as TourModel, TourSchedule as TourScheduleModel
+from app.models.tour_guide import TourGuide as TourGuideModel
+from app.models.supplier import Supplier as SupplierModel
+from app.models.review import Review as ReviewModel
 from app.schemas.tour import Tour, TourCreate, TourUpdate
+from sqlalchemy import func
 
 router = APIRouter()
 
@@ -19,7 +23,45 @@ async def get_tours(
     if destination:
         query = query.filter(TourModel.destination.ilike(f"%{destination}%"))
     tours = query.offset(skip).limit(limit).all()
-    return tours
+    
+    result = []
+    for tour in tours:
+        # Calculate rating: Start with 5.0 and decrease as reviews come in
+        review_data = db.query(
+            func.count(ReviewModel.id),
+            func.sum(ReviewModel.rating)
+        ).filter(ReviewModel.tour_id == tour.id).first()
+        
+        count = review_data[0] or 0
+        total_rating = review_data[1] or 0
+        
+        # Convert to dict to ensure runtime attributes are included in serialization
+        tour_dict = {
+            "id": tour.id,
+            "name": tour.name,
+            "description": tour.description,
+            "destination": tour.destination,
+            "duration": tour.duration,
+            "price": tour.price,
+            "max_participants": tour.max_participants,
+            "start_date": tour.start_date,
+            "end_date": tour.end_date,
+            "status": tour.status,
+            "image_url": tour.image_url,
+            "image_size": tour.image_size,
+            "guides": tour.guides,
+            "suppliers": tour.suppliers,
+            "vehicle_id": tour.vehicle_id,
+            "supplier_ids": [s.id for s in tour.suppliers],
+            "created_at": tour.created_at,
+            "updated_at": tour.updated_at,
+            "schedules": tour.schedules,
+            "review_count": count,
+            "rating": round((5.0 + float(total_rating)) / (count + 1), 1)
+        }
+        result.append(tour_dict)
+        
+    return result
 
 
 @router.get("/{tour_id}", response_model=Tour)
@@ -27,15 +69,64 @@ async def get_tour(tour_id: int, db: Session = Depends(get_db)):
     tour = db.query(TourModel).filter(TourModel.id == tour_id).first()
     if not tour:
         raise HTTPException(status_code=404, detail="Tour not found")
-    return tour
+    
+    # Calculate rating: Start with 5.0 and decrease as reviews come in
+    # Formula: (5.0 + sum(ratings)) / (count + 1)
+    review_data = db.query(
+        func.count(ReviewModel.id),
+        func.sum(ReviewModel.rating)
+    ).filter(ReviewModel.tour_id == tour_id).first()
+    
+    count = review_data[0] or 0
+    total_rating = review_data[1] or 0
+    
+    # Convert to dict to ensure runtime attributes are included in serialization
+    tour_data = {
+        "id": tour.id,
+        "name": tour.name,
+        "description": tour.description,
+        "destination": tour.destination,
+        "duration": tour.duration,
+        "price": tour.price,
+        "max_participants": tour.max_participants,
+        "start_date": tour.start_date,
+        "end_date": tour.end_date,
+        "status": tour.status,
+        "image_url": tour.image_url,
+        "image_size": tour.image_size,
+        "guides": tour.guides,
+        "suppliers": tour.suppliers,
+        "vehicle_id": tour.vehicle_id,
+        "supplier_ids": [s.id for s in tour.suppliers],
+        "created_at": tour.created_at,
+        "updated_at": tour.updated_at,
+        "schedules": tour.schedules,
+        "review_count": count,
+        "rating": round((5.0 + float(total_rating)) / (count + 1), 1)
+    }
+    
+    return tour_data
 
 
 @router.post("/", response_model=Tour)
 async def create_tour(tour_in: TourCreate, db: Session = Depends(get_db)):
-    tour_data = tour_in.model_dump(exclude={"schedules"})
+    tour_data = tour_in.model_dump(exclude={"schedules", "guide_ids", "supplier_ids"})
     schedules_data = tour_in.schedules or []
+    guide_ids = tour_in.guide_ids or []
+    supplier_ids = tour_in.supplier_ids or []
     
     tour = TourModel(**tour_data)
+    
+    # Handle guides
+    if guide_ids:
+        guides = db.query(TourGuideModel).filter(TourGuideModel.id.in_(guide_ids)).all()
+        tour.guides = guides
+        
+    # Handle suppliers
+    if supplier_ids:
+        suppliers = db.query(SupplierModel).filter(SupplierModel.id.in_(supplier_ids)).all()
+        tour.suppliers = suppliers
+        
     db.add(tour)
     db.commit()
     db.refresh(tour)
@@ -56,9 +147,19 @@ async def update_tour(tour_id: int, tour_in: TourUpdate, db: Session = Depends(g
     if not tour:
         raise HTTPException(status_code=404, detail="Tour not found")
     
-    update_data = tour_in.model_dump(exclude={"schedules"}, exclude_unset=True)
+    update_data = tour_in.model_dump(exclude={"schedules", "guide_ids", "supplier_ids"}, exclude_unset=True)
     for key, value in update_data.items():
         setattr(tour, key, value)
+    
+    # Update guides if provided
+    if tour_in.guide_ids is not None:
+        guides = db.query(TourGuideModel).filter(TourGuideModel.id.in_(tour_in.guide_ids)).all()
+        tour.guides = guides
+        
+    # Update suppliers if provided
+    if tour_in.supplier_ids is not None:
+        suppliers = db.query(SupplierModel).filter(SupplierModel.id.in_(tour_in.supplier_ids)).all()
+        tour.suppliers = suppliers
     
     # Update schedules if provided
     if tour_in.schedules is not None:
