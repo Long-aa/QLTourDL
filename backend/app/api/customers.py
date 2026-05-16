@@ -7,8 +7,54 @@ from app.schemas.customer import Customer, CustomerCreate, CustomerUpdate, Custo
 from app.core.security import get_password_hash
 
 from app.models.user import User as UserModel
+from app.dependencies.auth import get_current_user
 
 router = APIRouter()
+
+
+@router.get("/me", response_model=Customer)
+async def get_customer_me(
+    db: Session = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user)
+):
+    customer = db.query(CustomerModel).filter(CustomerModel.user_id == current_user.id).first()
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer profile not found")
+    return customer
+
+
+@router.put("/me", response_model=Customer)
+async def update_customer_me(
+    customer_in: CustomerUpdate,
+    db: Session = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user)
+):
+    customer = db.query(CustomerModel).filter(CustomerModel.user_id == current_user.id).first()
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer profile not found")
+    
+    # Update customer fields
+    update_data = customer_in.model_dump(exclude_unset=True)
+    
+    # Separate user fields from customer fields
+    user_fields = ['full_name', 'email']
+    customer_data = {k: v for k, v in update_data.items() if k not in user_fields}
+    user_data = {k: v for k, v in update_data.items() if k in user_fields}
+    
+    # Update customer
+    for key, value in customer_data.items():
+        setattr(customer, key, value)
+    
+    # Update user
+    if user_data and customer.user:
+        for key, value in user_data.items():
+            setattr(customer.user, key, value)
+        db.add(customer.user)
+    
+    db.add(customer)
+    db.commit()
+    db.refresh(customer)
+    return customer
 
 
 @router.get("/", response_model=CustomerPagination)

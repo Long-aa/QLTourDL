@@ -6,6 +6,11 @@ export const orderService = {
     return response.data;
   },
 
+  getMyOrders: async () => {
+    const response = await api.get('orders/my-orders');
+    return response.data;
+  },
+
   getById: async (id: number) => {
     const response = await api.get(`orders/${id}`);
     return response.data;
@@ -23,6 +28,11 @@ export const orderService = {
 
   delete: async (id: number) => {
     const response = await api.delete(`orders/${id}`);
+    return response.data;
+  },
+
+  pay: async (id: number) => {
+    const response = await api.post(`orders/${id}/pay`);
     return response.data;
   },
 };

@@ -6,6 +6,7 @@ from app.models.tour import Tour as TourModel, TourSchedule as TourScheduleModel
 from app.models.tour_guide import TourGuide as TourGuideModel
 from app.models.supplier import Supplier as SupplierModel
 from app.models.review import Review as ReviewModel
+from app.models.order import Order as OrderModel
 from app.schemas.tour import Tour, TourCreate, TourUpdate
 from sqlalchemy import func
 
@@ -16,12 +17,35 @@ router = APIRouter()
 async def get_tours(
     skip: int = 0,
     limit: int = 100,
+    q: Optional[str] = None,
     destination: Optional[str] = None,
+    start_date: Optional[str] = None,
+    min_price: Optional[float] = None,
+    max_price: Optional[float] = None,
     db: Session = Depends(get_db)
 ):
     query = db.query(TourModel)
+    
+    if q:
+        search = f"%{q}%"
+        query = query.filter(
+            (TourModel.name.ilike(search)) | 
+            (TourModel.description.ilike(search)) |
+            (TourModel.destination.ilike(search))
+        )
+    
     if destination:
         query = query.filter(TourModel.destination.ilike(f"%{destination}%"))
+
+    if start_date:
+        query = query.filter(TourModel.start_date >= start_date)
+        
+    if min_price is not None:
+        query = query.filter(TourModel.price >= min_price)
+        
+    if max_price is not None:
+        query = query.filter(TourModel.price <= max_price)
+        
     tours = query.offset(skip).limit(limit).all()
     
     result = []
@@ -57,7 +81,11 @@ async def get_tours(
             "updated_at": tour.updated_at,
             "schedules": tour.schedules,
             "review_count": count,
-            "rating": round((5.0 + float(total_rating)) / (count + 1), 1)
+            "rating": round((5.0 + float(total_rating)) / (count + 1), 1),
+            "current_booked": db.query(func.sum(OrderModel.quantity)).filter(
+                OrderModel.tour_id == tour.id,
+                OrderModel.status != "cancelled"
+            ).scalar() or 0
         }
         result.append(tour_dict)
         
@@ -102,7 +130,11 @@ async def get_tour(tour_id: int, db: Session = Depends(get_db)):
         "updated_at": tour.updated_at,
         "schedules": tour.schedules,
         "review_count": count,
-        "rating": round((5.0 + float(total_rating)) / (count + 1), 1)
+        "rating": round((5.0 + float(total_rating)) / (count + 1), 1),
+        "current_booked": db.query(func.sum(OrderModel.quantity)).filter(
+            OrderModel.tour_id == tour_id,
+            OrderModel.status != "cancelled"
+        ).scalar() or 0
     }
     
     return tour_data

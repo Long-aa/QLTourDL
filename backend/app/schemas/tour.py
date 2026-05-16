@@ -54,6 +54,7 @@ class Tour(TourBase):
     suppliers: List[SupplierSchema] = []
     rating: float = 5.0
     review_count: int = 0
+    current_booked: int = 0
 
     class Config:
         from_attributes = True

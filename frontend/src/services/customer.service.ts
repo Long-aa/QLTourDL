@@ -6,6 +6,16 @@ export const customerService = {
     return response.data;
   },
 
+  getMe: async () => {
+    const response = await api.get('customers/me');
+    return response.data;
+  },
+
+  updateMe: async (data: any) => {
+    const response = await api.put('customers/me', data);
+    return response.data;
+  },
+
   getCustomerById: async (id: number) => {
     const response = await api.get(`customers/${id}`);
     return response.data;

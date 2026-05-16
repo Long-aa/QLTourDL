@@ -118,6 +118,13 @@ export function OrderFormModal({ onClose, order }: OrderFormModalProps) {
 
   const nextStep = () => {
     if (formData.customer_id && formData.tour_id) {
+      if (selectedTour) {
+        const remainingSeats = selectedTour.max_participants - (selectedTour.current_booked || 0);
+        if (formData.quantity > remainingSeats && !isEdit) {
+          alert(`Tour này chỉ còn ${remainingSeats} chỗ trống. Vui lòng giảm số lượng khách.`);
+          return;
+        }
+      }
       setStep(2);
     } else {
       alert('Vui lòng chọn khách hàng và tour trước khi tiếp tục.');
@@ -234,20 +241,29 @@ export function OrderFormModal({ onClose, order }: OrderFormModalProps) {
 
                   {showTourDropdown && filteredTours.length > 0 && (
                     <div className="absolute top-full left-0 right-0 mt-3 bg-white dark:bg-gray-800 rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-700 z-30 max-h-64 overflow-y-auto p-2">
-                      {filteredTours.map((t) => (
-                        <button
-                          key={t.id}
-                          onClick={() => {
-                            setFormData({ ...formData, tour_id: t.id });
-                            setTourSearch(t.name);
-                            setShowTourDropdown(false);
-                          }}
-                          className="w-full text-left p-4 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-2xl transition-all group"
-                        >
-                          <p className="text-sm font-black text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors">{t.name}</p>
-                          <p className="text-[10px] text-blue-600 font-bold mt-1 uppercase tracking-tight">{t.price.toLocaleString('vi-VN')}₫ • {t.duration}</p>
-                        </button>
-                      ))}
+                      {filteredTours.map((t) => {
+                        const isFull = t.max_participants - t.current_booked <= 0;
+                        return (
+                          <button
+                            key={t.id}
+                            disabled={isFull}
+                            onClick={() => {
+                              setFormData({ ...formData, tour_id: t.id });
+                              setTourSearch(t.name);
+                              setShowTourDropdown(false);
+                            }}
+                            className={`w-full text-left p-4 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-2xl transition-all group ${isFull ? 'opacity-50 cursor-not-allowed grayscale' : ''}`}
+                          >
+                            <p className="text-sm font-black text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors">{t.name}</p>
+                            <div className="flex items-center justify-between mt-1">
+                              <p className="text-[10px] text-blue-600 font-bold uppercase tracking-tight">{t.price.toLocaleString('vi-VN')}₫ • {t.duration}</p>
+                              <p className={`text-[10px] font-bold uppercase tracking-tight ${t.max_participants - t.current_booked <= 0 ? 'text-red-500' : 'text-gray-400'}`}>
+                                {t.max_participants - t.current_booked <= 0 ? 'Hết chỗ' : `Còn ${t.max_participants - t.current_booked} chỗ`}
+                              </p>
+                            </div>
+                          </button>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -308,6 +324,25 @@ export function OrderFormModal({ onClose, order }: OrderFormModalProps) {
                       <p className="text-sm font-black">{formData.quantity} người</p>
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Payment Status */}
+              <div className="space-y-4">
+                <label className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest ml-2">Trạng thái thanh toán</label>
+                <div className="grid grid-cols-2 gap-4">
+                  <button
+                    onClick={() => setFormData({ ...formData, payment_status: 'unpaid' })}
+                    className={`p-4 rounded-2xl border-2 transition-all font-bold text-sm ${formData.payment_status === 'unpaid' ? 'border-amber-500 bg-amber-50 text-amber-600' : 'border-gray-100 text-gray-400 hover:border-amber-200'}`}
+                  >
+                    Chưa thanh toán
+                  </button>
+                  <button
+                    onClick={() => setFormData({ ...formData, payment_status: 'paid', status: 'confirmed' })}
+                    className={`p-4 rounded-2xl border-2 transition-all font-bold text-sm ${formData.payment_status === 'paid' ? 'border-green-500 bg-green-50 text-green-600' : 'border-gray-100 text-gray-400 hover:border-green-200'}`}
+                  >
+                    Đã thanh toán
+                  </button>
                 </div>
               </div>
 

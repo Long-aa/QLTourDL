@@ -138,22 +138,24 @@ async def get_category_distribution(
 
 @router.get("/featured-tours")
 async def get_featured_tours(limit: int = 4, db: Session = Depends(get_db)):
-    # Find tours with most orders
+    # Find tours with most booked participants (sum of quantity)
     query = db.query(
         TourModel,
-        func.count(OrderModel.id).label('order_count')
-    ).outerjoin(OrderModel).group_by(TourModel.id).order_by(func.count(OrderModel.id).desc()).limit(limit)
+        func.sum(func.coalesce(OrderModel.quantity, 0)).label('total_booked')
+    ).outerjoin(OrderModel, (OrderModel.tour_id == TourModel.id) & (OrderModel.status != 'cancelled')) \
+     .group_by(TourModel.id).order_by(func.sum(OrderModel.quantity).desc()).limit(limit)
     
     results = query.all()
     
     featured = []
-    for tour, count in results:
+    for tour, total_booked in results:
         featured.append({
             "id": tour.id,
             "name": tour.name,
-            "bookings": count,
+            "bookings": int(total_booked or 0),
+            "max_participants": tour.max_participants,
             "price": f"{tour.price:,.0f}₫" if tour.price else "0₫",
-            "rating": 5.0, # Placeholder for now as rating logic is in tour API
+            "rating": 5.0,
             "image": tour.image_url or 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=400&h=250&fit=crop'
         })
     

@@ -1,7 +1,7 @@
 # Force reload - updated B2 credentials
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import auth, tours, customers, orders, employees, suppliers, reports, settings, guides_vehicles, uploads
+from app.api import auth, tours, customers, orders, employees, suppliers, reports, settings, guides_vehicles, uploads, feedbacks, contacts
 from fastapi.staticfiles import StaticFiles
 import os
 from app.core.config import settings as app_settings
@@ -30,6 +30,8 @@ app.include_router(reports.router, prefix="/api/v1/reports", tags=["reports"])
 app.include_router(settings.router, prefix="/api/v1/settings", tags=["settings"])
 app.include_router(guides_vehicles.router, prefix="/api/v1/guides-vehicles", tags=["guides-vehicles"])
 app.include_router(uploads.router, prefix="/api/v1/uploads", tags=["uploads"])
+app.include_router(feedbacks.router, prefix="/api/v1/feedbacks", tags=["feedbacks"])
+app.include_router(contacts.router, prefix="/api/v1/contacts", tags=["contacts"])
 
 @app.get("/")
 async def root():
