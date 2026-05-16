@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     SUPABASE_URL: str = ""
     SUPABASE_KEY: str = ""
     SUPABASE_STORAGE_BUCKET: str = "tours"
+    GOOGLE_API_KEY: str = ""
     
     @property
     def cors_origins(self) -> List[str]:

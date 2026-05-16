@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { User, LogOut, UserCircle, Calendar } from 'lucide-react';
 import { authService } from '@/services/auth.service';
 import { customerService } from '@/services/customer.service';
+import AIChatBubble from '@/components/AIChatBubble';
 
 export default function ClientLayout({
   children,
@@ -146,6 +147,7 @@ export default function ClientLayout({
           </div>
         </div>
       </footer>
+      <AIChatBubble mode="client" />
     </div>
   );
 }

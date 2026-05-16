@@ -14,7 +14,8 @@ import {
   Minus,
   Plus,
   ChevronRight,
-  Loader2
+  Loader2,
+  MessageSquare
 } from 'lucide-react';
 import { tourService } from '@/services/tour.service';
 import { feedbackService } from '@/services/feedback.service';

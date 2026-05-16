@@ -19,7 +19,10 @@ async def get_customer_me(
 ):
     customer = db.query(CustomerModel).filter(CustomerModel.user_id == current_user.id).first()
     if not customer:
-        raise HTTPException(status_code=404, detail="Customer profile not found")
+        customer = CustomerModel(user_id=current_user.id)
+        db.add(customer)
+        db.commit()
+        db.refresh(customer)
     return customer
 
 
