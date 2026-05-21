@@ -12,6 +12,8 @@ export default function SuppliersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [searchQuery, setSearchQuery] = useState('');
+
   useEffect(() => {
     fetchSuppliers();
   }, []);
@@ -67,6 +69,17 @@ export default function SuppliersPage() {
     }
   };
 
+  const filteredSuppliers = suppliers.filter(supplier => {
+    if (!searchQuery) return true;
+    const lowerQuery = searchQuery.toLowerCase();
+    return (
+      supplier.name?.toLowerCase().includes(lowerQuery) ||
+      supplier.service_type?.toLowerCase().includes(lowerQuery) ||
+      supplier.email?.toLowerCase().includes(lowerQuery) ||
+      supplier.phone?.toLowerCase().includes(lowerQuery)
+    );
+  });
+
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -91,6 +104,8 @@ export default function SuppliersPage() {
               type="text"
               placeholder="Tìm tên nhà cung cấp, dịch vụ..."
               className="w-full pl-11 pr-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 text-sm transition-all dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:placeholder-gray-600"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
         </div>
@@ -121,10 +136,10 @@ export default function SuppliersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                {suppliers.length === 0 ? (
-                   <tr><td colSpan={5} className="py-10 text-center text-gray-500">Không có dữ liệu</td></tr>
+                {filteredSuppliers.length === 0 ? (
+                   <tr><td colSpan={5} className="py-10 text-center text-gray-500">Không tìm thấy nhà cung cấp nào</td></tr>
                 ) : (
-                  suppliers.map((supplier) => {
+                  filteredSuppliers.map((supplier) => {
                     const Icon = getServiceIcon(supplier.service_type);
                     return (
                       <tr key={supplier.id} className="group hover:bg-blue-50/30 dark:hover:bg-blue-900/10 transition-colors">

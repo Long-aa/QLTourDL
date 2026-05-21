@@ -49,6 +49,8 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [searchQuery, setSearchQuery] = useState('');
+
   useEffect(() => {
     fetchOrders();
   }, []);
@@ -88,6 +90,16 @@ export default function OrdersPage() {
     }
   };
 
+  const filteredOrders = orders.filter(order => {
+    if (!searchQuery) return true;
+    const lowerQuery = searchQuery.toLowerCase();
+    return (
+      order.id?.toString().includes(lowerQuery) ||
+      order.customer?.user?.full_name?.toLowerCase().includes(lowerQuery) ||
+      order.tour?.name?.toLowerCase().includes(lowerQuery)
+    );
+  });
+
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -111,6 +123,8 @@ export default function OrdersPage() {
             type="text"
             placeholder="Tìm theo Mã đơn, Tên khách hàng..."
             className="w-full pl-11 pr-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 text-sm transition-all dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:placeholder-gray-600"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
       </div>
@@ -141,10 +155,10 @@ export default function OrdersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                {orders.length === 0 ? (
-                  <tr><td colSpan={6} className="py-10 text-center text-gray-500">Không có đơn hàng nào</td></tr>
+                {filteredOrders.length === 0 ? (
+                  <tr><td colSpan={6} className="py-10 text-center text-gray-500">Không tìm thấy đơn hàng nào</td></tr>
                 ) : (
-                  orders.map((order) => {
+                  filteredOrders.map((order) => {
                     const status = order.status || 'pending';
                     const StatusIcon = STATUS_ICONS[status] || Clock;
                     return (

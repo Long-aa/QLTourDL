@@ -66,8 +66,8 @@ export default function AdminTourDetailPage({ params }: { params: Promise<{ id: 
     );
   }
 
-  // Empty participants list for new tour as requested
-  const participants: any[] = [];
+  // Use participants from backend
+  const participants: any[] = tour.participants || [];
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-12">
@@ -123,7 +123,7 @@ export default function AdminTourDetailPage({ params }: { params: Promise<{ id: 
               </div>
               <div>
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Số chỗ đã đặt</p>
-                <p className="text-2xl font-black text-gray-900 dark:text-white">0 <span className="text-sm text-gray-400 font-bold">/ {tour.max_participants}</span></p>
+                <p className="text-2xl font-black text-gray-900 dark:text-white">{tour.current_booked || 0} <span className="text-sm text-gray-400 font-bold">/ {tour.max_participants}</span></p>
               </div>
             </div>
             <div className="bg-white dark:bg-gray-900 p-6 rounded-[24px] border border-gray-100 dark:border-gray-800 shadow-sm space-y-4 transition-colors">

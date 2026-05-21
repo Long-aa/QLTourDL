@@ -45,6 +45,14 @@ class TourUpdate(TourBase):
 
 from app.schemas.supplier import Supplier as SupplierSchema
 
+class Participant(BaseModel):
+    id: int
+    name: str
+    phone: str
+    passengers: int
+    total: float
+    status: str
+
 class Tour(TourBase):
     id: int
     created_at: datetime
@@ -55,6 +63,8 @@ class Tour(TourBase):
     rating: float = 5.0
     review_count: int = 0
     current_booked: int = 0
+    revenue: float = 0.0
+    participants: List[Participant] = []
 
     class Config:
         from_attributes = True

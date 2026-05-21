@@ -14,6 +14,8 @@ export default function ToursPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [searchQuery, setSearchQuery] = useState('');
+
   useEffect(() => {
     fetchTours();
   }, []);
@@ -53,6 +55,16 @@ export default function ToursPage() {
     }
   };
 
+  const filteredTours = tours.filter(tour => {
+    if (!searchQuery) return true;
+    const lowerQuery = searchQuery.toLowerCase();
+    return (
+      tour.name?.toLowerCase().includes(lowerQuery) ||
+      tour.id?.toString().includes(lowerQuery) ||
+      tour.destination?.toLowerCase().includes(lowerQuery)
+    );
+  });
+
   return (
     <div className="space-y-6">
       <div>
@@ -66,8 +78,10 @@ export default function ToursPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
             <input
               type="text"
-              placeholder="Tìm kiếm tour theo tên, mã..."
+              placeholder="Tìm kiếm tour theo tên, mã, điểm đến..."
               className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:placeholder-gray-500 transition-all"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
         </div>
@@ -107,12 +121,12 @@ export default function ToursPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                {tours.length === 0 ? (
+                {filteredTours.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="py-10 text-center text-gray-500">Không tìm thấy tour nào</td>
                   </tr>
                 ) : (
-                  tours.map((tour) => (
+                  filteredTours.map((tour) => (
                     <tr key={tour.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors">
                       <td className="py-4 px-6">
                         <div className="relative w-12 h-12 bg-gray-100 rounded-lg overflow-hidden dark:bg-gray-800">

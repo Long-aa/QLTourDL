@@ -44,6 +44,11 @@ async def get_dashboard_stats(
     fill_rate = round((total_booked / total_capacity) * 100, 1) if total_capacity > 0 else 0
 
     return {
+        "tours": {
+            "value": total_tours,
+            "change": "+3",
+            "label": "SỐ LƯỢNG TOUR"
+        },
         "revenue": {
             "value": float(total_revenue),
             "change": "+12.5%",

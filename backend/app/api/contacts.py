@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from app.core.database import get_db
 from app.models.contact import ContactMessage as ContactMessageModel
-from app.schemas.contact import ContactMessage, ContactMessageCreate
+from app.schemas.contact import ContactMessage, ContactMessageCreate, ContactMessageUpdate
 
 router = APIRouter()
 
@@ -16,6 +16,17 @@ async def get_contact_messages(skip: int = 0, limit: int = 100, db: Session = De
 async def create_contact_message(message_in: ContactMessageCreate, db: Session = Depends(get_db)):
     message = ContactMessageModel(**message_in.model_dump())
     db.add(message)
+    db.commit()
+    db.refresh(message)
+    return message
+
+@router.put("/{message_id}", response_model=ContactMessage)
+async def update_contact_message(message_id: int, message_in: ContactMessageUpdate, db: Session = Depends(get_db)):
+    message = db.query(ContactMessageModel).filter(ContactMessageModel.id == message_id).first()
+    if not message:
+        raise HTTPException(status_code=404, detail="Message not found")
+    
+    message.status = message_in.status
     db.commit()
     db.refresh(message)
     return message

@@ -108,6 +108,33 @@ async def get_tour(tour_id: int, db: Session = Depends(get_db)):
     count = review_data[0] or 0
     total_rating = review_data[1] or 0
     
+    # Calculate revenue
+    revenue = db.query(func.sum(OrderModel.total_price)).filter(
+        OrderModel.tour_id == tour_id,
+        OrderModel.status == "confirmed"
+    ).scalar() or 0
+    
+    # Get participants
+    orders = db.query(OrderModel).filter(OrderModel.tour_id == tour_id).all()
+    participants = []
+    for o in orders:
+        status_label = "Chờ xử lý"
+        if o.status == "confirmed":
+            status_label = "Đã thanh toán"
+        elif o.status == "cancelled":
+            status_label = "Đã hủy"
+        elif o.status == "refunded":
+            status_label = "Hoàn tiền"
+            
+        participants.append({
+            "id": o.id,
+            "name": o.customer.user.full_name if (o.customer and o.customer.user) else "Khách lẻ",
+            "phone": o.customer.phone if o.customer else "",
+            "passengers": o.quantity or 0,
+            "total": float(o.total_price or 0),
+            "status": status_label
+        })
+
     # Convert to dict to ensure runtime attributes are included in serialization
     tour_data = {
         "id": tour.id,
@@ -134,7 +161,9 @@ async def get_tour(tour_id: int, db: Session = Depends(get_db)):
         "current_booked": db.query(func.sum(OrderModel.quantity)).filter(
             OrderModel.tour_id == tour_id,
             OrderModel.status != "cancelled"
-        ).scalar() or 0
+        ).scalar() or 0,
+        "revenue": float(revenue),
+        "participants": participants
     }
     
     return tour_data

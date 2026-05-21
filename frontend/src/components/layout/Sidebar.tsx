@@ -12,6 +12,7 @@ import {
   UserCog,
   BarChart3,
   Settings,
+  MessageSquare,
 } from 'lucide-react';
 
 import { useEffect, useState } from 'react';
@@ -26,6 +27,7 @@ const menuItems = [
   { icon: Bus, label: 'HDV/PT', href: '/admin/guides-vehicles' },
   { icon: UserCog, label: 'Nhân sự', href: '/admin/employees' },
   { icon: BarChart3, label: 'Báo cáo', href: '/admin/reports' },
+  { icon: MessageSquare, label: 'Hỗ trợ KH', href: '/admin/support' },
   { icon: Settings, label: 'Cấu hình', href: '/admin/settings' },
 ];
 

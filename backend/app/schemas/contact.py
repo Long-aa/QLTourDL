@@ -12,6 +12,9 @@ class ContactMessageBase(BaseModel):
 class ContactMessageCreate(ContactMessageBase):
     pass
 
+class ContactMessageUpdate(BaseModel):
+    status: str
+
 class ContactMessage(ContactMessageBase):
     id: int
     status: str

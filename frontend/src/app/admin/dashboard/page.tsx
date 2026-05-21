@@ -70,8 +70,8 @@ export default function DashboardPage() {
         <StatCard
           icon={Flag}
           label="Số lượng tour"
-          value={`${stats?.revenue?.value ? 12 : 0}`} // Converted to string to match prop type
-          trend="+3 mới"
+          value={stats?.tours?.value ? stats.tours.value.toString() : "0"}
+          trend={stats?.tours?.change}
           trendLabel="Tháng này"
           iconBg="bg-indigo-50 dark:bg-indigo-900/20"
           iconColor="text-indigo-600 dark:text-indigo-400"

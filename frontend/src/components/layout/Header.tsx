@@ -1,14 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, Bell, Moon, Sun, User, LogOut, UserCircle, CheckCircle2, ShoppingBag, BarChart3 } from 'lucide-react';
+import { 
+  Search, Bell, Moon, Sun, User, LogOut, UserCircle, 
+  CheckCircle2, ShoppingBag, BarChart3, MapPin, Users, Building2, Loader2, X, UserCog
+} from 'lucide-react';
 import { useTheme } from 'next-themes';
-import { useEffect } from 'react';
 import Link from 'next/link';
 
 import { authService } from '@/services/auth.service';
 import { useAuth } from '@/components/providers/AuthProvider';
+import { searchService, SearchResultItem } from '@/services/search.service';
 
 export function Header() {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
@@ -17,9 +20,50 @@ export function Header() {
   const { user, logout } = useAuth();
   const router = useRouter();
 
+  // Search states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<SearchResultItem[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Handle click outside search to close
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setIsSearchOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Debounced search
+  useEffect(() => {
+    if (!searchQuery || searchQuery.trim().length < 2) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    const delayDebounceFn = setTimeout(async () => {
+      try {
+        const data = await searchService.globalSearch(searchQuery);
+        setSearchResults(data.results);
+      } catch (error) {
+        console.error('Search error', error);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery]);
 
   const handleLogout = () => {
     logout();
@@ -42,15 +86,96 @@ export function Header() {
     { id: 4, title: 'Cập nhật hồ sơ khách hàng', desc: 'Khách hàng VIP Trần Thị B vừa thêm ghi chú về yêu cầu thực đơn ăn chay...', time: '2 ngày trước', type: 'user', unread: false },
   ];
 
+  const getSearchIcon = (type: string) => {
+    switch (type) {
+      case 'tour': return <MapPin className="w-5 h-5 text-indigo-500" />;
+      case 'customer': return <Users className="w-5 h-5 text-emerald-500" />;
+      case 'supplier': return <Building2 className="w-5 h-5 text-amber-500" />;
+      case 'order': return <ShoppingBag className="w-5 h-5 text-rose-500" />;
+      case 'employee': return <UserCog className="w-5 h-5 text-purple-500" />;
+      default: return <Search className="w-5 h-5 text-gray-500" />;
+    }
+  };
+
   return (
     <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 relative z-50 dark:bg-gray-900 dark:border-gray-800 transition-colors">
-      <div className="relative w-80">
+      
+      {/* Global Search */}
+      <div className="relative w-80 lg:w-96" ref={searchRef}>
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
         <input
           type="text"
-          placeholder="Tìm kiếm..."
-          className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:placeholder-gray-500"
+          placeholder="Tìm kiếm tour, khách hàng, đơn hàng..."
+          className="w-full pl-10 pr-10 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:placeholder-gray-500 transition-all"
+          value={searchQuery}
+          onChange={(e) => {
+            setSearchQuery(e.target.value);
+            setIsSearchOpen(true);
+          }}
+          onFocus={() => setIsSearchOpen(true)}
         />
+        {searchQuery && (
+          <button 
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            onClick={() => {
+              setSearchQuery('');
+              setSearchResults([]);
+              setIsSearchOpen(false);
+            }}
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
+
+        {/* Search Results Dropdown */}
+        {isSearchOpen && searchQuery.trim().length >= 2 && (
+          <div className="absolute top-full left-0 mt-2 w-[450px] bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl shadow-xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
+            {isSearching ? (
+              <div className="flex items-center justify-center p-8">
+                <Loader2 className="w-6 h-6 text-blue-500 animate-spin" />
+                <span className="ml-3 text-sm text-gray-500 dark:text-gray-400">Đang tìm kiếm...</span>
+              </div>
+            ) : searchResults.length > 0 ? (
+              <div className="max-h-[400px] overflow-y-auto p-2">
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-3 py-2">Kết quả tìm kiếm</div>
+                {searchResults.map((result) => (
+                  <Link 
+                    key={`${result.type}-${result.id}`}
+                    href={result.link}
+                    onClick={() => setIsSearchOpen(false)}
+                    className="flex items-center gap-4 p-3 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl transition-colors group"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center shrink-0 border border-gray-200 dark:border-gray-700 overflow-hidden">
+                      {result.image_url ? (
+                        <img src={result.image_url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        getSearchIcon(result.type)
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        {result.title}
+                      </p>
+                      {result.subtitle && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                          {result.subtitle}
+                        </p>
+                      )}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="p-8 text-center">
+                <div className="w-12 h-12 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Search className="w-5 h-5 text-gray-400" />
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-300 font-medium">Không tìm thấy kết quả</p>
+                <p className="text-xs text-gray-400 mt-1">Thử sử dụng các từ khóa khác</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="flex items-center gap-4">

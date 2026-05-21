@@ -55,9 +55,9 @@ export function RecentOrders() {
                 <td className="py-4">
                   <div className="flex items-center gap-3">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400`}>
-                      {order.customer?.full_name?.substring(0, 2).toUpperCase() || 'KH'}
+                      {order.customer?.user?.full_name?.substring(0, 2).toUpperCase() || 'KH'}
                     </div>
-                    <span className="text-sm font-medium text-gray-900 dark:text-gray-200">{order.customer?.full_name || 'Khách lẻ'}</span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-gray-200">{order.customer?.user?.full_name || 'Khách lẻ'}</span>
                   </div>
                 </td>
                 <td className="py-4">
