@@ -74,6 +74,7 @@ export function Header() {
     switch (role?.toLowerCase()) {
       case 'admin': return 'Quản trị viên';
       case 'staff': return 'Nhân viên';
+      case 'employee': return 'Nhân viên';
       case 'user': return 'Khách hàng';
       default: return role;
     }

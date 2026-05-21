@@ -31,10 +31,11 @@ export default function LoginPage() {
       
       // Decode token to get role
       const decoded = decodeToken(data.access_token);
-      const role = decoded?.role || 'user';
+      const rawRole = decoded?.role || 'user';
+      const role = rawRole.toLowerCase();
 
       // Redirect based on role
-      if (role === 'admin' || role === 'staff') {
+      if (role === 'admin' || role === 'staff' || role === 'employee' || role === 'nhân viên' || role === 'nhan vien' || role === 'quản trị viên' || role === 'quan tri vien') {
         router.push('/admin/dashboard');
       } else {
         router.push('/');

@@ -17,6 +17,7 @@ import {
 
 import { useEffect, useState } from 'react';
 import { settingsService, SystemSettings } from '@/services/settings.service';
+import { useAuth } from '@/components/providers/AuthProvider';
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/admin/dashboard' },
@@ -33,6 +34,7 @@ const menuItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { user } = useAuth();
   const [settings, setSettings] = useState<SystemSettings | null>(null);
 
   const fetchSettings = async () => {
@@ -83,6 +85,11 @@ export function Sidebar() {
 
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {menuItems.map((item) => {
+          const userRole = user?.role?.toLowerCase() || '';
+          if ((userRole === 'staff' || userRole === 'employee' || userRole === 'nhân viên' || userRole === 'nhan vien') && item.href === '/admin/employees') {
+            return null;
+          }
+          
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
           const Icon = item.icon;
           
